@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from google.cloud import bigquery
 from google.oauth2 import service_account
-import os # Although we are removing its use, it's good practice to keep standard imports if needed elsewhere.
 
 # --- Page Configuration ---
 # Must be the first Streamlit command in your script
@@ -17,35 +16,41 @@ st.set_page_config(
 # Caching the data loading function for performance
 @st.cache_data
 def load_data():
-    """Loads data from Google BigQuery."""
-    # Construct a BigQuery client object from the service account secret
+    """Loads data from Google BigQuery and prepares it for the app."""
     try:
         # Use st.secrets to get the credentials from your secrets.toml file
         creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
         client = bigquery.Client(credentials=creds, project=creds.project_id)
 
-        # --- Define your query here ---
+        # Define your query here
         # Replace with your actual project_id, dataset_id, and table_id
         query = """
             SELECT *
             FROM `cat-litter-recommender.test_01.test_table_01`
         """
-        
-        # Execute the query and load results into a pandas DataFrame
         st.info("Querying data from Google BigQuery... this may take a moment.")
         query_job = client.query(query)
         df = query_job.to_dataframe()
         st.success("Data successfully loaded from BigQuery!")
         
-        # --- Perform any initial data cleaning here ---
-        # It's good practice to do this inside the cached function
-        # Example: ensuring binary columns are consistent strings for multiselect
-        if 'Flushable' in df.columns:
-            df['Flushable'] = df['Flushable'].astype(str).str.strip().str.capitalize()
-        if 'Scented' in df.columns:
-            df['Scented'] = df['Scented'].astype(str).str.strip().str.capitalize()
-        # ---
+        # --- Perform initial data cleaning and preparation ---
+        # List of columns that should be treated as boolean (Yes/"")
+        boolean_like_cols = [
+            'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
+            'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
+        ]
         
+        # Convert "Yes" to True and other values (like blanks or NA) to False
+        for col in boolean_like_cols:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.strip().str.lower() == 'yes'
+
+        # Ensure categorical columns are strings and handle potential NA values
+        categorical_cols = ['Scent', 'Composition', 'Flushable', 'Health_Monitoring', 'Mfg_Location']
+        for col in categorical_cols:
+            if col in df.columns:
+                df[col] = df[col].astype(str).fillna('N/A')
+
         return df
 
     except Exception as e:
@@ -55,101 +60,103 @@ def load_data():
 
 
 # --- Main App Logic ---
-
-# Call the function to load data from BigQuery
 df = load_data()
-
-if not df.empty:
-    st.title("Cat Litter Recommendations 🐾")
-    
-    # --- ADD YOUR IMAGE HERE ---
-    # Replace with the direct link you created in Step 2
-    john_cute_url = "https://drive.google.com/uc?id=1wD71MdwUScP809g0Eaz88688o9OWrZNO"
-    tien_sleep_url = "https://drive.google.com/uc?id=16fWhmZz51J78lr4diEVNzhYGfQWdMt3l"
-
-
-    st.image(
-        john_cute_url,
-        width=600  # Optional: set a width for the image
-    )
-
-    st.image(
-        tien_sleep_url,
-        width = 600
-    )
-
 
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
-    # --- Sidebar Filters ---
-    st.sidebar.header('Filter and Sort Options')
+    st.sidebar.header('Filter Your Litter')
 
-    # Dropdown multi-selects for categorical data
-    flushable_options = st.sidebar.multiselect(
-        'Is it Flushable?',
-        options=df['Flushable'].unique(),
-        default=df['Flushable'].unique() # Default to all selected
-    )
+    # Create a list to hold the boolean filters from pandas
+    active_filters = []
 
-    composition_options = st.sidebar.multiselect(
-        'Litter Composition:',
-        options=df['Composition'].unique(),
-        default=df['Composition'].unique()
-    )
+    # --- Dropdown multi-selects for categorical data with safety checks ---
+    # Define the filter widgets
+    filter_widgets = {
+        'Scent': 'Filter by Scent:',
+        'Composition': 'Filter by Composition:',
+        'Flushable': 'Filter by Flushable:',
+        'Health_Monitoring': 'Filter by Health Monitoring:',
+        'Mfg_Location': 'Filter by Manufacturing Location:'
+    }
 
-    location_options = st.sidebar.multiselect(
-        'Manufacturing Location:',
-        options=df['Mfg_Location'].unique(),
-        default=df['Mfg_Location'].unique()
-    )
+    for col_name, label in filter_widgets.items():
+        if col_name in df.columns:
+            options = sorted(df[col_name].unique())
+            selected_options = st.sidebar.multiselect(
+                label,
+                options=options,
+                default=options  # Default to all selected
+            )
+            active_filters.append(df[col_name].isin(selected_options))
+        else:
+            st.sidebar.warning(f"Column '{col_name}' not found in the data.")
 
-    scented_options = st.sidebar.multiselect(
-        'Is it Scented?',
-        options=df['Scented'].unique(),
-        default=df['Scented'].unique()
-    )
 
-    # Slider for the numeric rating
-    rating_range = st.sidebar.slider(
-        'Average Scraped Rating:',
-        min_value=float(df['Mean_Scraped_Rating'].min()),
-        max_value=float(df['Mean_Scraped_Rating'].max()),
-        value=(float(df['Mean_Scraped_Rating'].min()), float(df['Mean_Scraped_Rating'].max())) # A tuple for range
-    )
-
-    # Multi-select for performance features (maps to boolean columns)
-    performance_options = st.sidebar.multiselect(
-        'Performance Features:',
-        options=['Good Clumping', 'Good Odor Blocking']
-    )
-
-    # --- Filtering Logic ---
-    # Start with the original dataframe and apply filters sequentially
-    filtered_df = df[
-        (df['Flushable'].isin(flushable_options)) &
-        (df['Composition'].isin(material_options)) &
-        (df['Mfg_Location'].isin(location_options)) &
-        (df['Scented'].isin(scented_options)) &
-        (df['Mean_Scraped_Rating'].between(rating_range[0], rating_range[1]))
+    # --- Multi-select for performance features ---
+    performance_features_available = [
+        'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
+        'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
     ]
+    
+    # Filter list to only include columns that actually exist in the dataframe
+    performance_features_in_data = [col for col in performance_features_available if col in df.columns]
+
+    performance_options = st.sidebar.multiselect(
+        'Select Performance Features:',
+        options=performance_features_in_data
+    )
+    
+    # --- Filtering Logic ---
+    # Start with all rows being included
+    combined_filter = pd.Series([True] * len(df)) 
+    
+    # Combine all active filters using a logical AND (&)
+    for f in active_filters:
+        combined_filter = combined_filter & f
+    
+    # Apply the combined filter to the dataframe
+    filtered_df = df[combined_filter]
 
     # Handle the special performance filter (AND logic)
-    if 'Good Clumping' in performance_options:
-        filtered_df = filtered_df[filtered_df['Good Clumping'] == True]
-    
-    if 'Good Odor Blocking' in performance_options:
-        filtered_df = filtered_df[filtered_df['Good Odor Blocking'] == True]
+    # This ensures a product must have ALL selected performance features
+    for feature in performance_options:
+        if feature in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df[feature] == True]
 
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommendations 🐾")
+    
+    # --- Display Cat Images ---
+    john_cute_url = "https://drive.google.com/uc?id=1wD71MdwUScP809g0Eaz88688o9OWrZNO"
+    tien_sleep_url = "https://drive.google.com/uc?id=16fWhmZz51J78lr4diEVNzhYGfQWdMt3l"
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(john_cute_url, caption="Our beloved John", use_column_width=True)
+    with col2:
+        st.image(tien_sleep_url, caption="Tien enjoying a nap", use_column_width=True)
+
     st.write("Use the filters on the left to narrow down your choices.")
     
-    # Display the number of results found
     st.markdown(f"**Found {len(filtered_df)} matching products**")
+    
+    # --- Define the columns to display in the final table ---
+    display_columns = ['Amazon_Product', 'review_count', 'AMZN_url']
+    
+    # Ensure all display columns exist before trying to show them
+    existing_display_columns = [col for col in display_columns if col in filtered_df.columns]
+    
     st.dataframe(
-        filtered_df,
+        filtered_df[existing_display_columns],
         hide_index=True,
+        # Configure the URL column to be a clickable link
+        column_config={
+            "AMZN_url": st.column_config.LinkColumn(
+                "Product Link",
+                display_text="Go to Amazon"
+            )
+        }
     )
 else:
     # This message will show if load_data() failed and returned an empty dataframe
