@@ -1,51 +1,35 @@
 import streamlit as st
 import pandas as pd
-import os
-
-# --- Page Configuration ---
-# Must be the first Streamlit command in your script
-st.set_page_config(
-    page_title="Cat Litter Recommender",
-    page_icon="🐾",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
 # --- Data Loading ---
-# Caching the data loading function for performance
 @st.cache_data
-def load_data(file_path):
-    """Loads the CSV data from the given file path."""
-    if not os.path.exists(file_path):
-        st.error(f"File not found: {file_path}. Please make sure the CSV is in the same folder as app.py.")
-        return pd.DataFrame() # Return empty dataframe if file doesn't exist
+def load_data():
+    # Construct a BigQuery client object from the service account secret
     try:
-        data = pd.read_csv(file_path)
-        # Data cleaning/preparation can be done here if needed
-        # For example, ensuring binary columns are consistent
-        data['Flushable'] = data['Flushable'].astype(str).str.strip().str.capitalize()
-        data['Scented'] = data['Scented'].astype(str).str.strip().str.capitalize()
-        return data
-    except Exception as e:
-        st.error(f"An error occurred while loading the data: {e}")
-        return pd.DataFrame()
+        # Use st.secrets to get the credentials
+        creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+        client = bigquery.Client(credentials=creds, project=creds.project_id)
 
-def create_sample_csv():
-    """Creates a sample CSV file for demonstration if one doesn't exist."""
-    sample_data = {
-        'Product Name': [f'Litter Brand {chr(65+i)}' for i in range(12)],
-        'Flushable': ['Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No'],
-        'Material': ['Corn', 'Clay', 'Walnut', 'Silica', 'Corn', 'Clay', 'Walnut', 'Silica', 'Corn', 'Clay', 'Walnut', 'Silica'],
-        'Mfg Location': ['USA', 'China', 'Canada', 'USA', 'China', 'Canada', 'USA', 'China', 'Canada', 'USA', 'China', 'Canada'],
-        'Scented': ['No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes'],
-        'Mean_Scraped_Rating': [4.5, 3.2, 4.8, 2.5, 4.6, 3.9, 4.9, 3.1, 4.2, 2.8, 4.7, 3.5],
-        'Good Clumping': [True, True, False, False, True, True, True, False, True, True, False, False],
-        'Good Odor Blocking': [True, False, True, True, True, False, True, True, False, False, True, True]
-    }
-    df = pd.DataFrame(sample_data)
-    df.to_csv('my_data.csv', index=False)
-    st.info("Sample 'my_data.csv' created. Please refresh the page.")
+        # --- Define your query here ---
+        # Replace with your project_id, dataset_id, and table_id
+        query = """
+            SELECT *
+            FROM `cat-litter-recommender.test_01.test_table_01`
+        """
+        
+        # Execute the query and load results into a pandas DataFrame
+        query_job = client.query(query)
+        df = query_job.to_dataframe()
+        
+        # Data cleaning can be done here as well
+        return df
+
+    except Exception as e:
+        st.error(f"An error occurred while connecting to BigQuery: {e}")
+        st.info("Please ensure your `gcp_service_account` secret is correctly configured.")
+        return pd.DataFrame()
 
 
 # --- Main App ---
