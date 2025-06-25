@@ -71,10 +71,10 @@ if not df.empty:
         default=df['Flushable'].unique() # Default to all selected
     )
 
-    material_options = st.sidebar.multiselect(
-        'Litter Material:',
-        options=df['Material'].unique(),
-        default=df['Material'].unique()
+    composition_options = st.sidebar.multiselect(
+        'Litter Composition:',
+        options=df['Composition'].unique(),
+        default=df['Composition'].unique()
     )
 
     location_options = st.sidebar.multiselect(
@@ -107,8 +107,8 @@ if not df.empty:
     # Start with the original dataframe and apply filters sequentially
     filtered_df = df[
         (df['Flushable'].isin(flushable_options)) &
-        (df['Material'].isin(material_options)) &
-        (df['Mfg Location'].isin(location_options)) &
+        (df['Composition'].isin(material_options)) &
+        (df['Mfg_Location'].isin(location_options)) &
         (df['Scented'].isin(scented_options)) &
         (df['Mean_Scraped_Rating'].between(rating_range[0], rating_range[1]))
     ]
