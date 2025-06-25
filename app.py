@@ -59,6 +59,26 @@ def load_data():
 # Call the function to load data from BigQuery
 df = load_data()
 
+if not df.empty:
+    st.title("Cat Litter Recommendations 🐾")
+    
+    # --- ADD YOUR IMAGE HERE ---
+    # Replace with the direct link you created in Step 2
+    john_cute_url = "https://drive.google.com/uc?id=1wD71MdwUScP809g0Eaz88688o9OWrZNO"
+    tien_sleep_url = "https://drive.google.com/uc?id=16fWhmZz51J78lr4diEVNzhYGfQWdMt3l"
+
+
+    st.image(
+        john_cute_url,
+        width=600  # Optional: set a width for the image
+    )
+
+    st.image(
+        tien_sleep_url,
+        width = 600
+    )
+
+
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
     # --- Sidebar Filters ---
@@ -79,8 +99,8 @@ if not df.empty:
 
     location_options = st.sidebar.multiselect(
         'Manufacturing Location:',
-        options=df['Mfg Location'].unique(),
-        default=df['Mfg Location'].unique()
+        options=df['Mfg_Location'].unique(),
+        default=df['Mfg_Location'].unique()
     )
 
     scented_options = st.sidebar.multiselect(
