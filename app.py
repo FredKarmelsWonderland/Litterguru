@@ -133,9 +133,9 @@ if not df.empty:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.image(john_cute_url, height=100)
+        st.image(john_cute_url, width=100)
     with col2:
-        st.image(tien_sleep_url, height=100)
+        st.image(tien_sleep_url, width=100)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
