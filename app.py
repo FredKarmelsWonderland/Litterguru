@@ -131,11 +131,14 @@ if not df.empty:
     john_cute_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
     tien_sleep_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/Tien%20sleeping.png"
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image(john_cute_url, width=100)
-    with col2:
-        st.image(tien_sleep_url, width=150)
+ # Create four columns; the outer two will act as spacers.
+    # The middle two columns will hold the images.
+    spacer1, img_col1, img_col2, spacer2 = st.columns([0.5, 1, 1, 0.5])
+
+    with img_col1:
+        st.image(john_cute_url, width = 100)
+    with img_col2:
+        st.image(tien_sleep_url, width = 150)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
