@@ -128,8 +128,9 @@ if not df.empty:
     st.title("Cat Litter Recommendations 🐾")
     
     # --- Display Cat Images ---
-    john_cute_url = "https://drive.google.com/uc?id=1wD71MdwUScP809g0Eaz88688o9OWrZNO"
-    tien_sleep_url = "https://drive.google.com/uc?id=16fWhmZz51J78lr4diEVNzhYGfQWdMt3l"
+    john_cute_url = "https://github.com/FredKarmelsWonderland/Litterguru/blob/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
+    tien_sleep_url = "https://github.com/FredKarmelsWonderland/Litterguru/blob/176ddfecd9034aec695e148c2840e207ef00b5b8/images/Tien%20sleeping.png"
+
 
     col1, col2 = st.columns(2)
     with col1:
