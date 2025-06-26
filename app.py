@@ -123,7 +123,7 @@ if not df.empty:
     with col1:
         st.image(john_cute_url, width = 100)
     with col2:
-        st.image(both_sitting_url, width = 100)
+        st.image(both_sitting_url, width = 130)
     with col3:
         st.image(tien_sleep_url, width = 150)
 
