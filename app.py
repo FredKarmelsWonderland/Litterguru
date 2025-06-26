@@ -127,8 +127,7 @@ if not df.empty:
     # st.write("Use the filters on the left to narrow down your choices.")
     
     st.markdown(f"**Found {len(filtered_df)} matching products.**")
-    st.markdown(f"Attributes such as Odor, etc. presented as a mean rating score.  Click column headers to sort!")
-    
+    st.markdown(f"Attributes such as Odor, etc. presented as a rating score*.  Click column headers to sort!")
     
 # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
@@ -170,10 +169,8 @@ if not df.empty:
 
  # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
-    st.markdown("For questions or feedback, please contact: [maxyen123@gmail.com](mailto:maxyen123@gmail.com)")
+    st.markdown("Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews")
     st.markdown("https://github.com/FredKarmelsWonderland")
-
-
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
