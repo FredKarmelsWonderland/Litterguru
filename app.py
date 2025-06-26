@@ -34,7 +34,7 @@ def load_data():
         # st.success("Data successfully loaded from BigQuery!")
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Composition', 'Flushable', 'Health_Monitoring', 'Mfg_Location']
+        categorical_cols = ['Scent', 'Flushable', 'Health_Monitoring', 'Mfg_Location']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -119,25 +119,26 @@ if not df.empty:
     john_cute_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
     tien_sleep_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/Tien%20sleeping.png"
 
-    col1, col2 = st.columns([0.5, 1, 1, 0.5])[1:3] # Use middle two columns
+    col1, col2 = st.columns(2)
     with col1:
-        st.image(john_cute_url, width = 150)
+        st.image(john_cute_url, width = 100)
     with col2:
-        st.image(tien_sleep_url, width = 200)
+        st.image(tien_sleep_url, width = 150)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
-    st.markdown(f"**Found {len(filtered_df)} matching products**")
+    st.markdown(f"**Found {len(filtered_df)} matching products.  Attributes such as Odor, etc. presented as a mean rating score**")
     
- # --- Define the columns to display and their new, shorter names with line breaks ---
+ # --- Define the columns to display and their new, shorter names ---
+    # The newline characters (\n) have been removed as st.dataframe does not render them.
     display_column_map = {
         'Amazon_Product': 'Product Name',
         'AMZN_url': 'Product Link',
-        'Mean_Odor_Block_if_True': 'Odor\nBlock\nRating',
-        'Mean_Clumping_if_True': 'Clumping\nRating',
-        'Mean_Tracking_if_True': 'Tracking\nRating',
-        'Mean_Dust_if_True': 'Dust\nRating',
-        'Mean_Cleaning_if_True': "Ease of\nCleaning\nRating"
+        'Mean_Odor_Block_if_True': 'Odor Blocking',
+        'Mean_Clumping_if_True': 'Clumping',
+        'Mean_Tracking_if_True': 'Tracking',
+        'Mean_Dust_if_True': 'Dust',
+        'Mean_Cleaning_if_True': "Cleaning"
         # Add other 'Original_Column_Name': 'New_Display_Name' pairs here
     }
     
@@ -154,7 +155,7 @@ if not df.empty:
     display_df = display_df.rename(columns=display_column_map)
 
     st.dataframe(
-        display_df, # CORRECTED: Use the new, renamed dataframe for display
+        display_df,
         hide_index=True,
         # Configure the URL column to be a clickable link, using its NEW name
         column_config={
@@ -164,6 +165,7 @@ if not df.empty:
             )
         }
     )
+    
 
  # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
@@ -172,7 +174,6 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
