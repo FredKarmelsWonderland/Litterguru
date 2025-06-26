@@ -121,15 +121,15 @@ if not df.empty:
 
     col1, col2 = st.columns([0.5, 1, 1, 0.5])[1:3] # Use middle two columns
     with col1:
-        st.image(john_cute_url, width = 250)
+        st.image(john_cute_url, width = 150)
     with col2:
-        st.image(tien_sleep_url, width = 300)
+        st.image(tien_sleep_url, width = 200)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
     st.markdown(f"**Found {len(filtered_df)} matching products**")
     
-# --- Define the columns to display and their new, shorter names ---
+ # --- Define the columns to display and their new, shorter names with line breaks ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
         'AMZN_url': 'Product Link',
@@ -152,13 +152,13 @@ if not df.empty:
     
     # Rename the columns for the final display
     display_df = display_df.rename(columns=display_column_map)
-    
+
     st.dataframe(
-        filtered_df[existing_display_columns],
+        display_df, # CORRECTED: Use the new, renamed dataframe for display
         hide_index=True,
-        # Configure the URL column to be a clickable link
+        # Configure the URL column to be a clickable link, using its NEW name
         column_config={
-            "AMZN_url": st.column_config.LinkColumn(
+            "Product Link": st.column_config.LinkColumn(
                 "Product Link",
                 display_text="Go to Amazon"
             )
@@ -172,7 +172,6 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
