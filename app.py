@@ -121,9 +121,9 @@ if not df.empty:
 
     col1, col2 = st.columns([0.5, 1, 1, 0.5])[1:3] # Use middle two columns
     with col1:
-        st.image(john_cute_url, use_container_width=True)
+        st.image(john_cute_url, width = 250)
     with col2:
-        st.image(tien_sleep_url, use_container_width=True)
+        st.image(tien_sleep_url, width = 300)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
@@ -133,11 +133,11 @@ if not df.empty:
     display_column_map = {
         'Amazon_Product': 'Product Name',
         'AMZN_url': 'Product Link',
-        'Mean_Odor_Block_if_True': 'Odor Block Rating',
-        'Mean_Clumping_if_True': 'Clumping Rating',
-        'Mean_Tracking_if_True': 'Tracking Rating',
-        'Mean_Dust_if_True': 'Dust Rating',
-        'Mean_Cleaning_if_True': "Ease of Cleaning Rating"
+        'Mean_Odor_Block_if_True': 'Odor\nBlock\nRating',
+        'Mean_Clumping_if_True': 'Clumping\nRating',
+        'Mean_Tracking_if_True': 'Tracking\nRating',
+        'Mean_Dust_if_True': 'Dust\nRating',
+        'Mean_Cleaning_if_True': "Ease of\nCleaning\nRating"
         # Add other 'Original_Column_Name': 'New_Display_Name' pairs here
     }
     
@@ -172,4 +172,9 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
+
+
+
+
 
