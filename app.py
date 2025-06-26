@@ -121,9 +121,9 @@ if not df.empty:
 
     col1, col2 = st.columns([0.5, 1, 1, 0.5])[1:3] # Use middle two columns
     with col1:
-        st.image(john_cute_url, use_column_width=True)
+        st.image(john_cute_url, use_container_width=True)
     with col2:
-        st.image(tien_sleep_url, use_column_width=True)
+        st.image(tien_sleep_url, use_container_width=True)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
