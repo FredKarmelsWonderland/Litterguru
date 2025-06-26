@@ -29,8 +29,8 @@ def load_data():
             FROM `cat-litter-recommender.test_01.test_table_03`
         """
         # st.info("Querying data from Google BigQuery... this may take a moment.")
-        # query_job = client.query(query)
-        # df = query_job.to_dataframe()
+        query_job = client.query(query)
+        df = query_job.to_dataframe()
         # st.success("Data successfully loaded from BigQuery!")
         
         # Ensure categorical columns are strings and handle potential NA values
