@@ -62,7 +62,6 @@ if not df.empty:
     filter_widgets = {
         'Scent': 'Filter by Scent:',
         'Flushable': 'Filter by Flushability:',
-        'Composition': 'Filter by Composition:',
         'Health_Monitoring': 'Filter by Health Monitoring:',
         'Mfg_Location': 'Filter by Manufacturing Location:'
     }
@@ -129,17 +128,15 @@ if not df.empty:
     
     st.markdown(f"**Found {len(filtered_df)} matching products.\nAttributes such as Odor, etc. presented as a mean rating score**")
     
- # --- Define the columns to display and their new, shorter names ---
-    # The newline characters (\n) have been removed as st.dataframe does not render them.
+# --- Define the columns to display and their new, shorter names ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
-        'AMZN_url': 'Product Link',
-        'Mean_Odor_Block_if_True': 'Odor Blocking',
+        'Amazon_url': 'Product Link',
+        'Mean_Odor_Block_if_True': 'Odor Control',
         'Mean_Clumping_if_True': 'Clumping',
         'Mean_Tracking_if_True': 'Tracking',
-        'Mean_Dust_if_True': 'Dust',
-        'Mean_Cleaning_if_True': "Cleaning"
-        # Add other 'Original_Column_Name': 'New_Display_Name' pairs here
+        'Mean_Dust_if_True': 'Dustiness',
+        'Mean_Cleaning_if_True': "Cleaning Ease"
     }
     
     # Get the list of original column names we want to display
@@ -154,25 +151,19 @@ if not df.empty:
     # Rename the columns for the final display
     display_df = display_df.rename(columns=display_column_map)
 
-    # --- HTML Table with Centered Text and Clickable Links ---
-    # Function to convert URLs to clickable HTML links
-    def make_clickable(url):
-        return f'<a target="_blank" href="{url}">Go to Amazon</a>'
-
-    # Apply the link function to the 'Product Link' column
-    if 'Product Link' in display_df.columns:
-        display_df['Product Link'] = display_df['Product Link'].apply(make_clickable)
-
-    # Convert the styled dataframe to HTML
-    # We use pandas styling to center the text in all columns
-    html = display_df.to_html(
-        escape=False, # This allows the HTML links to render
-        index=False,
-        justify='center' # Center-aligns the text in headers and cells
+    # Display the interactive dataframe, which allows sorting
+    st.dataframe(
+        display_df,
+        hide_index=True,
+        # Configure the URL column to be a clickable link, using its NEW name
+        column_config={
+            "Product Link": st.column_config.LinkColumn(
+                "Product Link",
+                display_text="Go to Amazon"
+            )
+        }
     )
 
-    # Display the HTML table using st.markdown
-    st.markdown(html, unsafe_allow_html=True)
     
 
  # --- Add Feedback Email at the Bottom ---
@@ -182,6 +173,7 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
 
 
 
