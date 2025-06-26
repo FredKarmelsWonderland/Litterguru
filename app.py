@@ -28,23 +28,11 @@ def load_data():
             SELECT *
             FROM `cat-litter-recommender.test_01.test_table_01`
         """
-        st.info("Querying data from Google BigQuery... this may take a moment.")
-        query_job = client.query(query)
-        df = query_job.to_dataframe()
-        st.success("Data successfully loaded from BigQuery!")
+        # st.info("Querying data from Google BigQuery... this may take a moment.")
+        # query_job = client.query(query)
+        # df = query_job.to_dataframe()
+        # st.success("Data successfully loaded from BigQuery!")
         
-        # --- Perform initial data cleaning and preparation ---
-        # List of columns that should be treated as boolean (Yes/"")
-        boolean_like_cols = [
-            'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
-            'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
-        ]
-        
-        # Convert "Yes" to True and other values (like blanks or NA) to False
-        for col in boolean_like_cols:
-            if col in df.columns:
-                df[col] = df[col].astype(str).str.strip().str.lower() == 'yes'
-
         # Ensure categorical columns are strings and handle potential NA values
         categorical_cols = ['Scent', 'Composition', 'Flushable', 'Health_Monitoring', 'Mfg_Location']
         for col in categorical_cols:
@@ -64,7 +52,7 @@ df = load_data()
 
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
-    st.sidebar.header('Filter Your Litter')
+    st.sidebar.header("Pick what's important to you")
 
     # Create a list to hold the boolean filters from pandas
     active_filters = []
@@ -73,8 +61,8 @@ if not df.empty:
     # Define the filter widgets
     filter_widgets = {
         'Scent': 'Filter by Scent:',
+        'Flushable': 'Filter by Flushability:',
         'Composition': 'Filter by Composition:',
-        'Flushable': 'Filter by Flushable:',
         'Health_Monitoring': 'Filter by Health Monitoring:',
         'Mfg_Location': 'Filter by Manufacturing Location:'
     }
@@ -94,9 +82,8 @@ if not df.empty:
 
     # --- Multi-select for performance features ---
     performance_features_available = [
-        'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
-        'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
-    ]
+        'Odor_Blocking', 'Low_Dust','Low_Tracking', 
+        'Good_Clumping', 'Ease_of_Cleaning']
     
     # Filter list to only include columns that actually exist in the dataframe
     performance_features_in_data = [col for col in performance_features_available if col in df.columns]
@@ -121,34 +108,51 @@ if not df.empty:
     # This ensures a product must have ALL selected performance features
     for feature in performance_options:
         if feature in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df[feature] == True]
+            # CORRECTED LOGIC: Check for rows where the value is 1
+            filtered_df = filtered_df[filtered_df[feature] == 1]
 
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommendations 🐾")
     
-    # --- Display Cat Images ---
+    # Display Cat Images from GitHub
     john_cute_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
     tien_sleep_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/Tien%20sleeping.png"
 
- # Create four columns; the outer two will act as spacers.
-    # The middle two columns will hold the images.
-    spacer1, img_col1, img_col2, spacer2 = st.columns([0.5, 1, 1, 0.5])
-
-    with img_col1:
-        st.image(john_cute_url, width = 100)
-    with img_col2:
-        st.image(tien_sleep_url, width = 150)
+    col1, col2 = st.columns([0.5, 1, 1, 0.5])[1:3] # Use middle two columns
+    with col1:
+        st.image(john_cute_url, use_column_width=True)
+    with col2:
+        st.image(tien_sleep_url, use_column_width=True)
 
     st.write("Use the filters on the left to narrow down your choices.")
     
     st.markdown(f"**Found {len(filtered_df)} matching products**")
     
-    # --- Define the columns to display in the final table ---
-    display_columns = ['Amazon_Product', 'review_count', 'AMZN_url']
+# --- Define the columns to display and their new, shorter names ---
+    display_column_map = {
+        'Amazon_Product': 'Product Name',
+        'review_count': 'Review Count',
+        'AMZN_url': 'Product Link',
+        'Mean_Odor_Block_if_True': 'Odor Block Rating',
+        'Mean_Clumping_if_True': 'Clumping Rating',
+        'Mean_Tracking_if_True': 'Tracking Rating',
+        'Mean_Dust_if_True': 'Dust Rating',
+        'Mean_Cleaning_if_True': "Ease of Cleaning Rating"
+        # Add other 'Original_Column_Name': 'New_Display_Name' pairs here
+    }
     
-    # Ensure all display columns exist before trying to show them
-    existing_display_columns = [col for col in display_columns if col in filtered_df.columns]
+    # Get the list of original column names we want to display
+    columns_to_show = list(display_column_map.keys())
+    
+    # Ensure all selected columns exist in the filtered dataframe before proceeding
+    existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
+    
+    # Create a new dataframe for display purposes, with only the existing columns
+    display_df = filtered_df[existing_display_columns]
+    
+    # Rename the columns for the final display
+    display_df = display_df.rename(columns=display_column_map)
     
     st.dataframe(
         filtered_df[existing_display_columns],
@@ -161,7 +165,13 @@ if not df.empty:
             )
         }
     )
+
+ # --- Add Feedback Email at the Bottom ---
+    st.markdown("---")
+    st.markdown("For questions or feedback, please contact: [maxyen123@gmail.com](mailto:maxyen123@gmail.com)")
+
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
 
