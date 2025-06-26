@@ -126,7 +126,9 @@ if not df.empty:
 
     st.write("Use the filters on the left to narrow down your choices.")
     
-    st.markdown(f"**Found {len(filtered_df)} matching products.\nAttributes such as Odor, etc. presented as a mean rating score**")
+    st.markdown(f"**Found {len(filtered_df)} matching products.**")
+    st.markdown(f"Attributes such as Odor, etc. presented as a mean rating score.  Click column headers to sort!")
+    
     
 # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
