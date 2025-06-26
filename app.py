@@ -26,7 +26,7 @@ def load_data():
         # Replace with your actual project_id, dataset_id, and table_id
         query = """
             SELECT *
-            FROM `cat-litter-recommender.test_01.test_table_03`
+            FROM `cat-litter-recommender.test_01.final_01`
         """
         # st.info("Querying data from Google BigQuery... this may take a moment.")
         query_job = client.query(query)
