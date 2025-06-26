@@ -124,7 +124,7 @@ if not df.empty:
     with col2:
         st.image(tien_sleep_url, width = 150)
 
-    st.write("Use the filters on the left to narrow down your choices.")
+    # st.write("Use the filters on the left to narrow down your choices.")
     
     st.markdown(f"**Found {len(filtered_df)} matching products.**")
     st.markdown(f"Attributes such as Odor, etc. presented as a mean rating score.  Click column headers to sort!")
