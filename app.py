@@ -62,27 +62,39 @@ if not df.empty:
     filter_widgets = {
         'Scent': 'Filter by Scent:',
         'Flushable': 'Filter by Flushability:',
-        'Health_Monitoring': 'Filter by Health Monitoring:',
         'Mfg_Location': 'Filter by Manufacturing Location:'
     }
 
+     # Create a new dataframe that will be filtered. Start with a copy of the original.
+    filtered_df = df.copy()
+
     for col_name, label in filter_widgets.items():
         if col_name in df.columns:
-            options = sorted(df[col_name].unique())
+            # --- MODIFIED LOGIC FOR SORTING OPTIONS ---
+            if col_name == 'Mfg_Location':
+                # For Mfg_Location, sort options by frequency (most common first)
+                options = df[col_name].value_counts().index.tolist()
+            else:
+                # For all other filters, sort alphabetically
+                options = sorted(df[col_name].unique())
+            
+            # Set default=[] to have the dropdown empty initially
             selected_options = st.sidebar.multiselect(
                 label,
                 options=options,
-                default=options  # Default to all selected
+                default=[] 
             )
-            active_filters.append(df[col_name].isin(selected_options))
+            # Only apply this filter if the user has selected at least one option
+            if selected_options:
+                filtered_df = filtered_df[filtered_df[col_name].isin(selected_options)]
         else:
             st.sidebar.warning(f"Column '{col_name}' not found in the data.")
-
 
     # --- Multi-select for performance features ---
     performance_features_available = [
         'Odor_Blocking', 'Low_Dust','Low_Tracking', 
-        'Good_Clumping', 'Ease_of_Cleaning']
+        'Good_Clumping', 'Ease_of_Cleaning',
+        "Health_Monitoring]"]
     
     # Filter list to only include columns that actually exist in the dataframe
     performance_features_in_data = [col for col in performance_features_available if col in df.columns]
@@ -123,7 +135,7 @@ if not df.empty:
     with col1:
         st.image(john_cute_url, width = 100)
     with col2:
-        st.image(both_sitting_url, width = 130)
+        st.image(both_sitting_url, width = 100)
     with col3:
         st.image(tien_sleep_url, width = 150)
 
@@ -177,7 +189,6 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
