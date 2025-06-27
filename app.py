@@ -32,9 +32,22 @@ def load_data():
         query_job = client.query(query)
         df = query_job.to_dataframe()
         # st.success("Data successfully loaded from BigQuery!")
+
+         # --- Data Cleaning and Preparation ---
+        # List of columns that should be treated as boolean-like (1/0)
+        performance_cols = [
+            'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
+            'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
+        ]
+
+        for col in performance_cols:
+            if col in df.columns:
+                # Convert column to numeric, coercing errors to NaN, then fill NaN with 0, then cast to integer.
+                # This ensures the column contains only 1s and 0s.
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Health_Monitoring', 'Mfg_Location']
+        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -52,9 +65,9 @@ df = load_data()
 
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
- # --- Sort the dataframe by review_count by default ---
-    if 'review_count' in df.columns:
-        df = df.sort_values(by='review_count', ascending=False)
+ # --- Sort the dataframe by P_Odor_Blocking_T2_if_True by default ---
+    if 'P_Odor_Blocking_T2_if_True' in df.columns:
+        df = df.sort_values(by='P_Odor_Blocking_T2_if_True', ascending=False)
 
     st.sidebar.header('Filter Your Litter')
     
@@ -102,8 +115,8 @@ if not df.empty:
 
     # --- Multi-select for performance features ---
     performance_features_available = [
-        'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
-        'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
+        'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
+        'Low_Tracking', 'Cat_Acceptance', 'Ease_of_Cleaning'
     ]
     
     # Filter list to only include columns that actually exist in the dataframe
@@ -189,5 +202,4 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
