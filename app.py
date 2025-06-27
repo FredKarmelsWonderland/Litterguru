@@ -62,7 +62,7 @@ if not df.empty:
     filter_widgets = {
         'Scent': 'Filter by Scent:',
         'Flushable': 'Filter by Flushability:',
-        'Mfg_Location': 'Filter by Manufacturing Location:'
+        'Mfg_Location': 'Filter by Origin:'
     }
 
      # Create a new dataframe that will be filtered. Start with a copy of the original.
@@ -94,7 +94,7 @@ if not df.empty:
     performance_features_available = [
         'Odor_Blocking', 'Low_Dust','Low_Tracking', 
         'Good_Clumping', 'Ease_of_Cleaning',
-        "Health_Monitoring]"]
+        "Health_Monitoring"]
     
     # Filter list to only include columns that actually exist in the dataframe
     performance_features_in_data = [col for col in performance_features_available if col in df.columns]
@@ -189,7 +189,6 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
