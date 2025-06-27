@@ -134,7 +134,7 @@ if not df.empty:
     performance_display_options = list(available_features_map.values())
 
     selected_display_names = st.sidebar.multiselect(
-        'Select Performance Features:',
+        'Select Top Performers in:',
         options=performance_display_options
     )
     
@@ -215,10 +215,14 @@ if not df.empty:
 
  # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
-    st.markdown("**Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews")
+    st.markdown("*Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
+
+
+
 
 
