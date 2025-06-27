@@ -178,6 +178,7 @@ if not df.empty:
 # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
+        'Composition': 'Composition',
         'Amazon_url': 'Product Link',
         'Mean_Odor_Block_if_True': 'Odor Control',
         'Mean_Clumping_if_True': 'Clumping',
@@ -220,6 +221,7 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
 
 
 
