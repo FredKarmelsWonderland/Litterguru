@@ -72,7 +72,7 @@ if not df.empty:
     st.sidebar.header('Filter Your Litter')
     
     # --- DEBUGGING: Display actual column names from BigQuery ---
-    st.sidebar.subheader("Available Data Columns:")
+    st.sidebar.subheader("Multi-select available:")
     # ---
 
     # --- Dropdown multi-selects for categorical data with safety checks ---
@@ -220,7 +220,6 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
