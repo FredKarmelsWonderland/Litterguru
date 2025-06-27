@@ -66,10 +66,11 @@ if not df.empty:
     # Define the filter widgets
     filter_widgets = {
         'Scent': 'Filter by Scent:',
-        'Composition': 'Filter by Composition:',
+        # 'Composition': 'Filter by Composition:',
         'Flushable': 'Filter by Flushable:',
-        'Health_Monitoring': 'Filter by Health Monitoring:',
-        'Mfg_Location': 'Filter by Manufacturing Location:'
+        "Material Type": 'Filter by Material Type',
+        # 'Health_Monitoring': 'Filter by Health Monitoring:',
+        'Mfg_Location': 'Filter by Product Origin:'
     }
     
     # CORRECTED LOGIC: Start with a copy of the original dataframe
@@ -188,6 +189,5 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
