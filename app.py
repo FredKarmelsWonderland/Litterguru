@@ -52,11 +52,14 @@ df = load_data()
 
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
+ # --- Sort the dataframe by review_count by default ---
+    if 'review_count' in df.columns:
+        df = df.sort_values(by='review_count', ascending=False)
+
     st.sidebar.header('Filter Your Litter')
     
     # --- DEBUGGING: Display actual column names from BigQuery ---
     st.sidebar.subheader("Available Data Columns:")
-    st.sidebar.expander("Click to see column names").write(df.columns.tolist())
     # ---
 
     # --- Dropdown multi-selects for categorical data with safety checks ---
@@ -185,7 +188,6 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
