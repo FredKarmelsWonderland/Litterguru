@@ -217,11 +217,11 @@ if not df.empty:
  # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
     st.markdown("*Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
+    st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
 
 
 
