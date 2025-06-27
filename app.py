@@ -113,27 +113,45 @@ if not df.empty:
             st.sidebar.warning(f"Column '{col_name}' not found in the data.")
 
 
-    # --- Multi-select for performance features ---
-    performance_features_available = [
-        'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
-        'Low_Tracking', 'Cat_Acceptance', 'Ease_of_Cleaning'
-    ]
-    
-    # Filter list to only include columns that actually exist in the dataframe
-    performance_features_in_data = [col for col in performance_features_available if col in df.columns]
+# --- Multi-select for performance features (with user-friendly names) ---
+    performance_feature_map = {
+        'Good_Smell': 'Good Smell',
+        'Odor_Blocking': 'Odor Blocking',
+        'Low_Dust': 'Dust',
+        'Good_Clumping': 'Clumping',
+        'Low_Tracking': 'Tracking',
+        'Ease_of_Cleaning': 'Easy to Clean'
+    }
 
-    performance_options = st.sidebar.multiselect(
-        'Select Top Performers Only:',
-        options=performance_features_in_data
-        # The default is already an empty list when omitted, so no change needed here.
+    # Filter the map to only include features that actually exist in the dataframe
+    available_features_map = {
+        raw_name: display_name 
+        for raw_name, display_name in performance_feature_map.items() 
+        if raw_name in df.columns
+    }
+    
+    # The options for the dropdown are the user-friendly display names
+    performance_display_options = list(available_features_map.values())
+
+    selected_display_names = st.sidebar.multiselect(
+        'Select Performance Features:',
+        options=performance_display_options
     )
     
     # --- Filtering Logic for Performance Features ---
+    # Create a reverse map to get the raw column name from the selected display name
+    reverse_performance_map = {display_name: raw_name for raw_name, display_name in available_features_map.items()}
+    
     # This ensures a product must have ALL selected performance features
-    for feature in performance_options:
-        if feature in filtered_df.columns:
+    for selected_name in selected_display_names:
+        raw_column_name = reverse_performance_map.get(selected_name)
+        if raw_column_name and raw_column_name in filtered_df.columns:
             # Check for rows where the value is 1
-            filtered_df = filtered_df[filtered_df[feature] == 1]
+            filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
+
+
+
+
     # --- Main Page Display ---
     st.title("Cat Litter Recommendations 🐾")
     st.subheader("We use AI to analyze >100,000 reviews, shortcutting you to the litter that meets your needs!")
@@ -197,9 +215,10 @@ if not df.empty:
 
  # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
-    st.markdown("Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews")
+    st.markdown("**Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
 
