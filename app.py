@@ -123,7 +123,7 @@ if not df.empty:
     performance_features_in_data = [col for col in performance_features_available if col in df.columns]
 
     performance_options = st.sidebar.multiselect(
-        'Select Performance Features:',
+        'Select Top Performers Only:',
         options=performance_features_in_data
         # The default is already an empty list when omitted, so no change needed here.
     )
@@ -184,17 +184,12 @@ if not df.empty:
     st.dataframe(
         display_df,
         hide_index=True,
-        # Configure the URL column to be a clickable link, and format numeric columns
+        # Configure the URL column to be a clickable link, using its NEW name
         column_config={
             "Product Link": st.column_config.LinkColumn(
                 "Product Link",
                 display_text="Go to Amazon"
-            ),
-            "Odor Block Rating": st.column_config.NumberColumn(format="%.1f"),
-            "Clumping Rating": st.column_config.NumberColumn(format="%.1f"),
-            "Tracking Rating": st.column_config.NumberColumn(format="%.1f"),
-            "Dust Rating": st.column_config.NumberColumn(format="%.1f"),
-            "Ease of Cleaning": st.column_config.NumberColumn(format="%.1f")
+            )
         }
     )
 
@@ -207,3 +202,4 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
+
