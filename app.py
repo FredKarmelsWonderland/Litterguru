@@ -65,8 +65,7 @@ if not df.empty:
         'Mfg_Location': 'Filter by Origin:'
     }
 
-     # Create a new dataframe that will be filtered. Start with a copy of the original.
-    filtered_df = df.copy()
+  filtered_df = df.copy()
 
     for col_name, label in filter_widgets.items():
         if col_name in df.columns:
@@ -86,9 +85,11 @@ if not df.empty:
             )
             # Only apply this filter if the user has selected at least one option
             if selected_options:
+                # CORRECTED LOGIC: Apply the filter to the already-filtered dataframe
                 filtered_df = filtered_df[filtered_df[col_name].isin(selected_options)]
         else:
             st.sidebar.warning(f"Column '{col_name}' not found in the data.")
+
 
     # --- Multi-select for performance features ---
     performance_features_available = [
