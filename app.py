@@ -52,20 +52,25 @@ df = load_data()
 
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
-    st.sidebar.header("Pick what's important to you")
-
-    # Create a list to hold the boolean filters from pandas
-    active_filters = []
+    st.sidebar.header('Filter Your Litter')
+    
+    # --- DEBUGGING: Display actual column names from BigQuery ---
+    st.sidebar.subheader("Available Data Columns:")
+    st.sidebar.expander("Click to see column names").write(df.columns.tolist())
+    # ---
 
     # --- Dropdown multi-selects for categorical data with safety checks ---
     # Define the filter widgets
     filter_widgets = {
         'Scent': 'Filter by Scent:',
-        'Flushable': 'Filter by Flushability:',
-        'Mfg_Location': 'Filter by Origin:'
+        'Composition': 'Filter by Composition:',
+        'Flushable': 'Filter by Flushable:',
+        'Health_Monitoring': 'Filter by Health Monitoring:',
+        'Mfg_Location': 'Filter by Manufacturing Location:'
     }
-
-  filtered_df = df.copy()
+    
+    # CORRECTED LOGIC: Start with a copy of the original dataframe
+    filtered_df = df.copy()
 
     for col_name, label in filter_widgets.items():
         if col_name in df.columns:
@@ -93,9 +98,9 @@ if not df.empty:
 
     # --- Multi-select for performance features ---
     performance_features_available = [
-        'Odor_Blocking', 'Low_Dust','Low_Tracking', 
-        'Good_Clumping', 'Ease_of_Cleaning',
-        "Health_Monitoring"]
+        'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
+        'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
+    ]
     
     # Filter list to only include columns that actually exist in the dataframe
     performance_features_in_data = [col for col in performance_features_available if col in df.columns]
@@ -103,29 +108,19 @@ if not df.empty:
     performance_options = st.sidebar.multiselect(
         'Select Performance Features:',
         options=performance_features_in_data
+        # The default is already an empty list when omitted, so no change needed here.
     )
     
-    # --- Filtering Logic ---
-    # Start with all rows being included
-    combined_filter = pd.Series([True] * len(df)) 
-    
-    # Combine all active filters using a logical AND (&)
-    for f in active_filters:
-        combined_filter = combined_filter & f
-    
-    # Apply the combined filter to the dataframe
-    filtered_df = df[combined_filter]
-
-    # Handle the special performance filter (AND logic)
+    # --- Filtering Logic for Performance Features ---
     # This ensures a product must have ALL selected performance features
     for feature in performance_options:
         if feature in filtered_df.columns:
-            # CORRECTED LOGIC: Check for rows where the value is 1
+            # Check for rows where the value is 1
             filtered_df = filtered_df[filtered_df[feature] == 1]
-
-
     # --- Main Page Display ---
     st.title("Cat Litter Recommendations 🐾")
+    st.subheader("We use AI to analyze >100,000 reviews, shortcutting you to the litter that meets your needs!")
+
     
     # Display Cat Images from GitHub
     john_cute_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
