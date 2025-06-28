@@ -137,7 +137,6 @@ if not df.empty:
 
     # --- Multi-select for performance features (with user-friendly names) ---
     st.sidebar.subheader("Top Performers for\n(AI review analysis):")
-    st.sidebar.subheader("")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
