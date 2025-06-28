@@ -63,8 +63,8 @@ df = load_data()
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
     # --- Sort the dataframe by default ---
-    if 'P_Odor_Blocking_T2_if_True' in df.columns:
-        df = df.sort_values(by='P_Odor_Blocking_T2_if_True', ascending=False)
+    if 'Mean_Performance' in df.columns:
+        df = df.sort_values(by='Mean_Performance', ascending=False)
 
     st.sidebar.header('Litter Type')
     
