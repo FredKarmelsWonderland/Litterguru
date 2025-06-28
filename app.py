@@ -138,10 +138,10 @@ if not df.empty:
     # --- Multi-select for performance features (with user-friendly names) ---
     st.sidebar.subheader("Top Performers for:")
     performance_feature_map = {
-        'Good_Smell': 'Good Smell',
+        # 'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
         'Low_Dust': 'Low Dust',
-        'Low_Tracking': 'Tracking',
+        'Low_Tracking': 'Low Tracking',
         'Ease_of_Cleaning': 'Easy to Clean'
     }
     available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
@@ -187,7 +187,8 @@ if not df.empty:
         'Mean_Odor_Block_if_True': 'Odor Control',
         'Mean_Tracking_if_True': 'Tracking',
         'Mean_Dust_if_True': 'Dustiness',
-        'Mean_Cleaning_if_True': "Cleaning Ease"
+        'Mean_Cleaning_if_True': "Cleaning Ease",
+        'Mean_Performance': 'Overall average'
     }
     
     columns_to_show = list(display_column_map.keys())
