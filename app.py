@@ -197,7 +197,7 @@ if not df.empty:
     display_df = filtered_df[existing_display_columns]
     display_df = display_df.rename(columns=display_column_map)
 
-    st.markdown("*AI Sentiment Analysis, Average Score*")
+    st.markdown("<p style='text-align: right; color: grey;'><i>AI Sentiment Analysis, Average Score*</i></p>", unsafe_allow_html=True)
 
     st.dataframe(
         display_df,
