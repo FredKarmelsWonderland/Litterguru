@@ -136,7 +136,7 @@ if not df.empty:
                 filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.subheader("Top Performers for\n(AI review analysis):")
+    st.sidebar.subheader("Top Performers:")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
