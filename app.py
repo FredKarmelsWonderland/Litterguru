@@ -43,7 +43,8 @@ def load_data():
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location']
+        # Note: We assume 'Yes'/'No' values are strings, which is fine.
+        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -65,76 +66,91 @@ if not df.empty:
     if 'P_Odor_Blocking_T2_if_True' in df.columns:
         df = df.sort_values(by='P_Odor_Blocking_T2_if_True', ascending=False)
 
-    st.sidebar.header('Filter Your Litter')
-    
-    # --- Define the filter widgets using expanders and checkboxes ---
-    filter_widgets = {
-        'Scent': 'Filter by Scent',
-        'Flushable': 'Filter by Flushable',
-        "Material Type": 'Filter by Material Type',
-        'Mfg_Location': 'Filter by Product Origin'
-    }
+    st.sidebar.header('Litter Type')
     
     # Start with a copy of the original dataframe
     filtered_df = df.copy()
 
-    for col_name, label in filter_widgets.items():
-        if col_name in df.columns:
-            with st.sidebar.expander(label, expanded=False): # Set expanded=False to start collapsed
-                # --- Sorting logic for options ---
-                if col_name == 'Mfg_Location':
-                    options = df[col_name].value_counts().index.tolist()
-                else:
-                    options = sorted(df[col_name].unique())
-                
-                selected_options = []
-                for option in options:
-                    # Create a unique key for each checkbox
-                    if st.checkbox(option, key=f"{col_name}_{option}"):
-                        selected_options.append(option)
-                
-            # Only apply this filter if the user has selected at least one option
-            if selected_options:
-                filtered_df = filtered_df[filtered_df[col_name].isin(selected_options)]
-        else:
-            st.sidebar.warning(f"Column '{col_name}' not found in the data.")
+    # --- NEW: Create a single expander for multiple attributes ---
+    with st.sidebar.expander("Filter by Attributes", expanded=True):
+        # Create checkboxes for each attribute
+        # The key must be unique for each widget
+        is_flushable = st.checkbox("Flushable", key="flush_yes")
+        is_not_flushable = st.checkbox("Not Flushable", key="flush_no")
+        is_scented = st.checkbox("Scented", key="scent_yes")
+        is_unscented = st.checkbox("Unscented", key="scent_no")
+        is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
+        is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
+    # --- NEW: Apply filters from the checkboxes ---
+    # Handle Flushable options
+    flushable_selections = []
+    if is_flushable: flushable_selections.append('Yes')
+    if is_not_flushable: flushable_selections.append('No')
+    if flushable_selections:
+        filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
+
+    # Handle Scent options
+    scent_selections = []
+    if is_scented: scent_selections.append('Scented')
+    if is_unscented: scent_selections.append('Unscented')
+    if scent_selections:
+        filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
+
+    # Handle Eco-friendly and Health Monitoring (assuming they are 'Yes'/'No' columns)
+    if is_eco_friendly and 'Eco_friendly' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Yes']
+
+    if is_health_monitoring and 'Health_Monitoring' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
+
+
+    # --- Keep separate filters for Material Type and Product Origin ---
+    if 'Material Type' in df.columns:
+        with st.sidebar.expander("Filter by Material Type", expanded=False):
+            mat_options = sorted(df['Material Type'].unique())
+            selected_mat_options = []
+            for option in mat_options:
+                if st.checkbox(option, key=f"mat_{option}"):
+                    selected_mat_options.append(option)
+            if selected_mat_options:
+                filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
+    
+    if 'Mfg_Location' in df.columns:
+        with st.sidebar.expander("Filter by Product Origin", expanded=False):
+            loc_options = df['Mfg_Location'].value_counts().index.tolist()
+            selected_loc_options = []
+            for option in loc_options:
+                if st.checkbox(option, key=f"loc_{option}"):
+                    selected_loc_options.append(option)
+            if selected_loc_options:
+                filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.markdown("AI-Analyzed Performance Attributes*")
+    st.sidebar.subheader("Top Performers In:")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
-        'Low_Dust': 'Dust',
+        'Low_Dust': 'Low Dust',
         'Low_Tracking': 'Tracking',
         'Ease_of_Cleaning': 'Easy to Clean'
     }
-
-    # Filter the map to only include features that actually exist in the dataframe
-    available_features_map = {
-        raw_name: display_name 
-        for raw_name, display_name in performance_feature_map.items() 
-        if raw_name in df.columns
-    }
-    
-    # The options for the dropdown are the user-friendly display names
+    available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
     performance_display_options = list(available_features_map.values())
 
     selected_display_names = st.sidebar.multiselect(
-        'Select Top Performers In:',
+        'Select attributes rated highly by users:',
         options=performance_display_options,
-        label_visibility="collapsed" # Hides the label to use the subheader above
+        label_visibility="collapsed"
     )
     
-    # --- Filtering Logic for Performance Features ---
-    # Create a reverse map to get the raw column name from the selected display name
-    reverse_performance_map = {display_name: raw_name for raw_name, display_name in available_features_map.items()}
-    
-    # This ensures a product must have ALL selected performance features
+    # Filtering Logic for Performance Features
+    reverse_performance_map = {label: name for name, label in available_features_map.items()}
     for selected_name in selected_display_names:
         raw_column_name = reverse_performance_map.get(selected_name)
-        if raw_column_name and raw_column_name in filtered_df.columns:
+        if raw_column_name:
             filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
+
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommender 🐾")
@@ -167,19 +183,11 @@ if not df.empty:
         'Mean_Cleaning_if_True': "Cleaning Ease"
     }
     
-    # Get the list of original column names we want to display
     columns_to_show = list(display_column_map.keys())
-    
-    # Ensure all selected columns exist in the filtered dataframe before proceeding
     existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
-    
-    # Create a new dataframe for display purposes, with only the existing columns
     display_df = filtered_df[existing_display_columns]
-    
-    # Rename the columns for the final display
     display_df = display_df.rename(columns=display_column_map)
 
-    # --- Reverting to st.dataframe for interactivity ---
     st.dataframe(
         display_df,
         hide_index=True,
@@ -187,12 +195,7 @@ if not df.empty:
             "Product Link": st.column_config.LinkColumn(
                 "Product Link",
                 display_text="Go to Amazon"
-            ),
-            # Add number formatting for rating columns
-            "Odor Control": st.column_config.NumberColumn(format="%.1f ⭐"),
-            "Tracking": st.column_config.NumberColumn(format="%.1f ⭐"),
-            "Dustiness": st.column_config.NumberColumn(format="%.1f ⭐"),
-            "Cleaning Ease": st.column_config.NumberColumn(format="%.1f ⭐")
+            )
         }
     )
 
@@ -202,5 +205,4 @@ if not df.empty:
     st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
-    # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
