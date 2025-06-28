@@ -136,7 +136,7 @@ if not df.empty:
                 filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.subheader("Top Performers:")
+    st.sidebar.subheader("Top Performers for:")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
@@ -196,6 +196,8 @@ if not df.empty:
     existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
     display_df = filtered_df[existing_display_columns]
     display_df = display_df.rename(columns=display_column_map)
+
+    st.markdown("*AI Sentiment Analysis, Average Score*")
 
     st.dataframe(
         display_df,
