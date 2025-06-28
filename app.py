@@ -79,6 +79,8 @@ if not df.empty:
         is_not_flushable = st.checkbox("Not Flushable", key="flush_no")
         is_scented = st.checkbox("Scented", key="scent_yes")
         is_unscented = st.checkbox("Unscented", key="scent_no")
+        is_clumping = st.checkbox("Clumping", key = "clumping_yes")
+        is_non_clumping = st.checkbox("Non-Clumping", key = "clumping_no")
         is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
         is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
@@ -96,6 +98,13 @@ if not df.empty:
     if is_unscented: scent_selections.append('Unscented')
     if scent_selections:
         filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
+
+    # Handle Clumping options
+    clumping_selections = []
+    if is_clumping: clumping_selections.append('Clumping')
+    if is_non_clumping: clumping_selections.append('Non-Clumping')
+    if clumping_selections:
+        filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
 
     # Handle Eco-friendly and Health Monitoring (assuming they are 'Yes'/'No' columns)
     if is_eco_friendly and 'Eco_friendly' in filtered_df.columns:
@@ -128,6 +137,7 @@ if not df.empty:
 
     # --- Multi-select for performance features (with user-friendly names) ---
     st.sidebar.subheader("Top Performers In:")
+    st.sidebar.subheader("(AI review analysis)")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
