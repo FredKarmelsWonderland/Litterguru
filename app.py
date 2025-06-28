@@ -23,27 +23,23 @@ def load_data():
         client = bigquery.Client(credentials=creds, project=creds.project_id)
 
         # Define your query here
-        # Replace with your actual project_id, dataset_id, and table_id
+        # Using the final table name from your provided code
         query = """
             SELECT *
             FROM `cat-litter-recommender.test_01.final_01`
         """
-        # st.info("Querying data from Google BigQuery... this may take a moment.")
         query_job = client.query(query)
         df = query_job.to_dataframe()
-        # st.success("Data successfully loaded from BigQuery!")
-
-         # --- Data Cleaning and Preparation ---
+        
+        # --- Data Cleaning and Preparation ---
         # List of columns that should be treated as boolean-like (1/0)
         performance_cols = [
-            'Good_Smell', 'Odor_Blocking', 'Low_Dust', 'Good_Clumping', 
+            'Good_Smell', 'Odor_Blocking', 'Low_Dust', 
             'Low_Tracking', 'Cat_Acceptance', 'Safety', 'Ease_of_Cleaning'
         ]
 
         for col in performance_cols:
             if col in df.columns:
-                # Convert column to numeric, coercing errors to NaN, then fill NaN with 0, then cast to integer.
-                # This ensures the column contains only 1s and 0s.
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
@@ -65,60 +61,51 @@ df = load_data()
 
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
- # --- Sort the dataframe by P_Odor_Blocking_T2_if_True by default ---
+    # --- Sort the dataframe by default ---
     if 'P_Odor_Blocking_T2_if_True' in df.columns:
         df = df.sort_values(by='P_Odor_Blocking_T2_if_True', ascending=False)
 
     st.sidebar.header('Filter Your Litter')
     
-    # --- DEBUGGING: Display actual column names from BigQuery ---
-    st.sidebar.subheader("Multi-select available:")
-    # ---
-
-    # --- Dropdown multi-selects for categorical data with safety checks ---
-    # Define the filter widgets
+    # --- Define the filter widgets using expanders and checkboxes ---
     filter_widgets = {
-        'Scent': 'Filter by Scent:',
-        # 'Composition': 'Filter by Composition:',
-        'Flushable': 'Filter by Flushable:',
+        'Scent': 'Filter by Scent',
+        'Flushable': 'Filter by Flushable',
         "Material Type": 'Filter by Material Type',
-        # 'Health_Monitoring': 'Filter by Health Monitoring:',
-        'Mfg_Location': 'Filter by Product Origin:'
+        'Mfg_Location': 'Filter by Product Origin'
     }
     
-    # CORRECTED LOGIC: Start with a copy of the original dataframe
+    # Start with a copy of the original dataframe
     filtered_df = df.copy()
 
     for col_name, label in filter_widgets.items():
         if col_name in df.columns:
-            # --- MODIFIED LOGIC FOR SORTING OPTIONS ---
-            if col_name == 'Mfg_Location':
-                # For Mfg_Location, sort options by frequency (most common first)
-                options = df[col_name].value_counts().index.tolist()
-            else:
-                # For all other filters, sort alphabetically
-                options = sorted(df[col_name].unique())
-            
-            # Set default=[] to have the dropdown empty initially
-            selected_options = st.sidebar.multiselect(
-                label,
-                options=options,
-                default=[] 
-            )
+            with st.sidebar.expander(label, expanded=False): # Set expanded=False to start collapsed
+                # --- Sorting logic for options ---
+                if col_name == 'Mfg_Location':
+                    options = df[col_name].value_counts().index.tolist()
+                else:
+                    options = sorted(df[col_name].unique())
+                
+                selected_options = []
+                for option in options:
+                    # Create a unique key for each checkbox
+                    if st.checkbox(option, key=f"{col_name}_{option}"):
+                        selected_options.append(option)
+                
             # Only apply this filter if the user has selected at least one option
             if selected_options:
-                # CORRECTED LOGIC: Apply the filter to the already-filtered dataframe
                 filtered_df = filtered_df[filtered_df[col_name].isin(selected_options)]
         else:
             st.sidebar.warning(f"Column '{col_name}' not found in the data.")
 
 
-# --- Multi-select for performance features (with user-friendly names) ---
+    # --- Multi-select for performance features (with user-friendly names) ---
+    st.sidebar.subheader("Top Performers In:")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
         'Low_Dust': 'Dust',
-        'Good_Clumping': 'Clumping',
         'Low_Tracking': 'Tracking',
         'Ease_of_Cleaning': 'Easy to Clean'
     }
@@ -134,8 +121,9 @@ if not df.empty:
     performance_display_options = list(available_features_map.values())
 
     selected_display_names = st.sidebar.multiselect(
-        'Select Top Performers in:',
-        options=performance_display_options
+        'Select attributes rated highly by users:',
+        options=performance_display_options,
+        label_visibility="collapsed" # Hides the label to use the subheader above
     )
     
     # --- Filtering Logic for Performance Features ---
@@ -146,16 +134,11 @@ if not df.empty:
     for selected_name in selected_display_names:
         raw_column_name = reverse_performance_map.get(selected_name)
         if raw_column_name and raw_column_name in filtered_df.columns:
-            # Check for rows where the value is 1
             filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
 
-
-
-
     # --- Main Page Display ---
-    st.title("Cat Litter Recommendations 🐾")
-    st.subheader("We use AI to analyze >100,000 reviews, shortcutting you to the litter that meets your needs!")
-
+    st.title("Cat Litter Recommender 🐾")
+    st.subheader("We use AI to analyze product reviews, helping you find the right litter!")
     
     # Display Cat Images from GitHub
     john_cute_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
@@ -164,24 +147,21 @@ if not df.empty:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.image(john_cute_url, width = 100)
+        st.image(john_cute_url, width=100)
     with col2:
-        st.image(both_sitting_url, width = 100)
+        st.image(both_sitting_url, width=100)
     with col3:
-        st.image(tien_sleep_url, width = 150)
-
-    # st.write("Use the filters on the left to narrow down your choices.")
+        st.image(tien_sleep_url, width=150)
     
     st.markdown(f"**Found {len(filtered_df)} matching products.**")
-    st.markdown(f"Attributes such as Odor, etc. presented as a rating score*.  Click column headers to sort!")
+    st.markdown(f"Attributes such as Odor, etc. presented as a rating score*. Click column headers to sort!")
     
-# --- Define the columns to display and their new, shorter names ---
+    # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
         'Composition': 'Composition',
         'Amazon_url': 'Product Link',
         'Mean_Odor_Block_if_True': 'Odor Control',
-        'Mean_Clumping_if_True': 'Clumping',
         'Mean_Tracking_if_True': 'Tracking',
         'Mean_Dust_if_True': 'Dustiness',
         'Mean_Cleaning_if_True': "Cleaning Ease"
@@ -212,9 +192,7 @@ if not df.empty:
         }
     )
 
-    
-
- # --- Add Feedback Email at the Bottom ---
+    # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
     st.markdown("*Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
     st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
@@ -222,8 +200,5 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
-
-
 
 
