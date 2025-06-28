@@ -63,8 +63,8 @@ df = load_data()
 # Only build the rest of the app if the dataframe was loaded successfully
 if not df.empty:
     # --- Sort the dataframe by default ---
-    if 'Mean_Performance' in df.columns:
-        df = df.sort_values(by='Mean_Performance', ascending=False)
+    if 'P_Odor_Blocking_T2_if_True' in df.columns:
+        df = df.sort_values(by='P_Odor_Blocking_T2_if_True', ascending=False)
 
     st.sidebar.header('Litter Type')
     
@@ -79,16 +79,14 @@ if not df.empty:
         is_not_flushable = st.checkbox("Not Flushable", key="flush_no")
         is_scented = st.checkbox("Scented", key="scent_yes")
         is_unscented = st.checkbox("Unscented", key="scent_no")
-        is_clumping = st.checkbox("Clumping", key = "clumping_yes")
-        is_non_clumping = st.checkbox("Non-Clumping", key = "clumping_no")
         is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
         is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
     # --- NEW: Apply filters from the checkboxes ---
     # Handle Flushable options
     flushable_selections = []
-    if is_flushable: flushable_selections.append('Flushable')
-    if is_not_flushable: flushable_selections.append('Not Flushable')
+    if is_flushable: flushable_selections.append('Yes')
+    if is_not_flushable: flushable_selections.append('No')
     if flushable_selections:
         filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
 
@@ -99,16 +97,9 @@ if not df.empty:
     if scent_selections:
         filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
 
-    # Handle Clumping options
-    clumping_selections = []
-    if is_clumping: clumping_selections.append('Clumping')
-    if is_non_clumping: clumping_selections.append('Non-Clumping')
-    if clumping_selections:
-        filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
-
     # Handle Eco-friendly and Health Monitoring (assuming they are 'Yes'/'No' columns)
     if is_eco_friendly and 'Eco_friendly' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
+        filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Yes']
 
     if is_health_monitoring and 'Health_Monitoring' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
@@ -136,12 +127,12 @@ if not df.empty:
                 filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.subheader("Top Performers for:")
+    st.sidebar.subheader("Top Performers In:")
     performance_feature_map = {
-        # 'Good_Smell': 'Good Smell',
+        'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
         'Low_Dust': 'Low Dust',
-        'Low_Tracking': 'Low Tracking',
+        'Low_Tracking': 'Tracking',
         'Ease_of_Cleaning': 'Easy to Clean'
     }
     available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
@@ -178,7 +169,8 @@ if not df.empty:
     with col3:
         st.image(tien_sleep_url, width=150)
     
-    st.markdown(f"**Found {len(filtered_df)} matching products.**")    
+    st.markdown(f"**Found {len(filtered_df)} matching products.**")
+    
     # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
@@ -187,8 +179,7 @@ if not df.empty:
         'Mean_Odor_Block_if_True': 'Odor Control',
         'Mean_Tracking_if_True': 'Tracking',
         'Mean_Dust_if_True': 'Dustiness',
-        'Mean_Cleaning_if_True': "Cleaning Ease",
-        'Mean_Performance': 'Overall average'
+        'Mean_Cleaning_if_True': "Cleaning Ease"
     }
     
     columns_to_show = list(display_column_map.keys())
@@ -196,7 +187,7 @@ if not df.empty:
     display_df = filtered_df[existing_display_columns]
     display_df = display_df.rename(columns=display_column_map)
 
-    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, Average Score*</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: right; color: grey; padding-right: 5%;'><i>AI Sentiment Analysis, Average Score*</i></p>", unsafe_allow_html=True)
 
     st.dataframe(
         display_df,
@@ -205,6 +196,10 @@ if not df.empty:
             "Product Link": st.column_config.LinkColumn(
                 "Product Link",
                 display_text="Go to Amazon"
+            ),
+            # Add a configuration for the Product Name column to give it more space
+            "Product Name": st.column_config.TextColumn(
+                width="large"
             )
         }
     )
