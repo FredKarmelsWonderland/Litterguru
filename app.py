@@ -178,9 +178,7 @@ if not df.empty:
     with col3:
         st.image(tien_sleep_url, width=150)
     
-    st.markdown(f"**Found {len(filtered_df)} matching products.**")
-    st.markdown(f"Attributes such as Odor, etc. presented as a rating score*. Click column headers to sort!")
-    
+    st.markdown(f"**Found {len(filtered_df)} matching products.**")    
     # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
