@@ -85,8 +85,8 @@ if not df.empty:
     # --- NEW: Apply filters from the checkboxes ---
     # Handle Flushable options
     flushable_selections = []
-    if is_flushable: flushable_selections.append('Yes')
-    if is_not_flushable: flushable_selections.append('No')
+    if is_flushable: flushable_selections.append('Flushable')
+    if is_not_flushable: flushable_selections.append('Not Flushable')
     if flushable_selections:
         filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
 
@@ -99,7 +99,7 @@ if not df.empty:
 
     # Handle Eco-friendly and Health Monitoring (assuming they are 'Yes'/'No' columns)
     if is_eco_friendly and 'Eco_friendly' in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Yes']
+        filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
 
     if is_health_monitoring and 'Health_Monitoring' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
