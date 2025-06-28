@@ -101,7 +101,7 @@ if not df.empty:
 
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.subheader("Top Performers In:")
+    st.sidebar.markdown("AI-Analyzed Performance Attributes*")
     performance_feature_map = {
         'Good_Smell': 'Good Smell',
         'Odor_Blocking': 'Odor Blocking',
@@ -121,7 +121,7 @@ if not df.empty:
     performance_display_options = list(available_features_map.values())
 
     selected_display_names = st.sidebar.multiselect(
-        'Select attributes rated highly by users:',
+        'Select Top Performers In:',
         options=performance_display_options,
         label_visibility="collapsed" # Hides the label to use the subheader above
     )
@@ -179,16 +179,20 @@ if not df.empty:
     # Rename the columns for the final display
     display_df = display_df.rename(columns=display_column_map)
 
-    # Display the interactive dataframe, which allows sorting
+    # --- Reverting to st.dataframe for interactivity ---
     st.dataframe(
         display_df,
         hide_index=True,
-        # Configure the URL column to be a clickable link, using its NEW name
         column_config={
             "Product Link": st.column_config.LinkColumn(
                 "Product Link",
                 display_text="Go to Amazon"
-            )
+            ),
+            # Add number formatting for rating columns
+            "Odor Control": st.column_config.NumberColumn(format="%.1f ⭐"),
+            "Tracking": st.column_config.NumberColumn(format="%.1f ⭐"),
+            "Dustiness": st.column_config.NumberColumn(format="%.1f ⭐"),
+            "Cleaning Ease": st.column_config.NumberColumn(format="%.1f ⭐")
         }
     )
 
@@ -200,5 +204,3 @@ if not df.empty:
 else:
     # This message will show if load_data() failed and returned an empty dataframe
     st.warning("Could not load data. Please check the error messages above.")
-
-
