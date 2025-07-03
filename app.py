@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np # Import numpy for the cleaning step
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
@@ -42,9 +43,17 @@ def load_data():
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
-        # Ensure categorical columns are strings and handle potential NA values
-        # Note: We assume 'Yes'/'No' values are strings, which is fine.
-        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly']
+        # --- More robust cleaning for Yes/No text columns ---
+        # Note: We are NOT cleaning 'Health_Monitoring' here as it is a true boolean
+        boolean_text_cols = ['Eco_friendly'] 
+        for col in boolean_text_cols:
+            if col in df.columns:
+                # This converts "yes", "YES", " yes ", "true", "1" to "Yes"
+                is_affirmative = df[col].astype(str).str.strip().str.lower().isin(['yes', 'true', '1', 'eco-friendly'])
+                df[col] = np.where(is_affirmative, 'Yes', 'No')
+
+        # Ensure other categorical columns are strings and handle potential NA values
+        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Clumping']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -68,10 +77,12 @@ if not df.empty:
 
     st.sidebar.header('Litter Type')
     
-    # --- Define all filter widgets and capture user selections ---
+    # Start with a copy of the original dataframe
+    filtered_df = df.copy()
 
-    # Attribute expander
+    # --- Create a single expander for multiple attributes ---
     with st.sidebar.expander("Filter by Attributes", expanded=True):
+        # Create checkboxes for each attribute
         is_flushable = st.checkbox("Flushable", key="flush_yes")
         is_not_flushable = st.checkbox("Not Flushable", key="flush_no")
         is_scented = st.checkbox("Scented", key="scent_yes")
@@ -81,25 +92,59 @@ if not df.empty:
         is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
         is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
-    # Material Type expander
-    selected_mat_options = []
+    # --- Apply filters from the checkboxes ---
+    # Handle Flushable options
+    flushable_selections = []
+    if is_flushable: flushable_selections.append('Flushable')
+    if is_not_flushable: flushable_selections.append('Not Flushable')
+    if flushable_selections and 'Flushable' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
+
+    # Handle Scent options
+    scent_selections = []
+    if is_scented: scent_selections.append('Scented')
+    if is_unscented: scent_selections.append('Unscented')
+    if scent_selections and 'Scent' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
+
+    # Handle Clumping options
+    clumping_selections = []
+    if is_clumping: clumping_selections.append('Clumping')
+    if is_non_clumping: clumping_selections.append('Non-Clumping')
+    if clumping_selections and 'Clumping' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
+
+    # Handle Eco-friendly
+    if is_eco_friendly and 'Eco_friendly' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Yes']
+
+    # Handle Health Monitoring (checking for boolean True)
+    if is_health_monitoring and 'Health_Monitoring' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Health_Monitoring'] == True]
+
+
+    # --- Keep separate filters for Material Type and Product Origin ---
     if 'Material Type' in df.columns:
         with st.sidebar.expander("Filter by Material Type", expanded=False):
             mat_options = sorted(df['Material Type'].unique())
+            selected_mat_options = []
             for option in mat_options:
                 if st.checkbox(option, key=f"mat_{option}"):
                     selected_mat_options.append(option)
+            if selected_mat_options:
+                filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
     
-    # Product Origin expander
-    selected_loc_options = []
     if 'Mfg_Location' in df.columns:
         with st.sidebar.expander("Filter by Product Origin", expanded=False):
             loc_options = df['Mfg_Location'].value_counts().index.tolist()
+            selected_loc_options = []
             for option in loc_options:
                 if st.checkbox(option, key=f"loc_{option}"):
                     selected_loc_options.append(option)
+            if selected_loc_options:
+                filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
 
-    # Performance features multiselect
+    # --- Multi-select for performance features (with user-friendly names) ---
     st.sidebar.subheader("Top Performers for:")
     performance_feature_map = {
         'Odor_Blocking': 'Odor Blocking',
@@ -109,18 +154,20 @@ if not df.empty:
     }
     available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
     performance_display_options = list(available_features_map.values())
+
     selected_display_names = st.sidebar.multiselect(
         'Select attributes rated highly by users:',
         options=performance_display_options,
         label_visibility="collapsed"
     )
+    
+    # Filtering Logic for Performance Features
+    reverse_performance_map = {label: name for name, label in available_features_map.items()}
+    for selected_name in selected_display_names:
+        raw_column_name = reverse_performance_map.get(selected_name)
+        if raw_column_name:
+            filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
 
-    # --- Check if any filter has been applied ---
-    any_filter_applied = (
-        is_flushable or is_not_flushable or is_scented or is_unscented or
-        is_clumping or is_non_clumping or is_eco_friendly or is_health_monitoring or
-        selected_mat_options or selected_loc_options or selected_display_names
-    )
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommender 🐾")
@@ -139,65 +186,40 @@ if not df.empty:
     with col3:
         st.image(tien_sleep_url, width=150)
     
-    # --- Conditional Display Logic ---
-    if any_filter_applied:
-        # If at least one filter is active, apply the logic and show the table
-        filtered_df = df.copy()
+    st.markdown(f"**Found {len(filtered_df)} matching products.**")
+    
+    # --- Define the columns to display and their new, shorter names ---
+    display_column_map = {
+        'Amazon_Product': 'Product Name',
+        'Composition': 'Composition',
+        'Amazon_url': 'Product Link',
+        'Mean_Odor_Block_if_True': 'Odor Control',
+        'Mean_Tracking_if_True': 'Tracking',
+        'Mean_Dust_if_True': 'Dustiness',
+        'Mean_Cleaning_if_True': "Cleaning Ease",
+        'Mean_Performance': 'Overall average'
+    }
+    
+    columns_to_show = list(display_column_map.keys())
+    existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
+    display_df = filtered_df[existing_display_columns]
+    display_df = display_df.rename(columns=display_column_map)
 
-        # Apply attribute filters
-        flushable_selections = [val for check, val in [(is_flushable, 'Flushable'), (is_not_flushable, 'Not Flushable')] if check]
-        if flushable_selections: filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
-        
-        scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
-        if scent_selections: filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
+    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, Average Score*</p>", unsafe_allow_html=True)
 
-        clumping_selections = [val for check, val in [(is_clumping, 'Clumping'), (is_non_clumping, 'Non-Clumping')] if check]
-        if clumping_selections: filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
-
-        if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
-        if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'No']
-
-        # Apply material and location filters
-        if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
-        if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
-
-        # Apply performance filters
-        reverse_performance_map = {label: name for name, label in available_features_map.items()}
-        for selected_name in selected_display_names:
-            raw_column_name = reverse_performance_map.get(selected_name)
-            if raw_column_name: filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
-        
-        st.markdown(f"**Found {len(filtered_df)} matching products.**")
-        
-        display_column_map = {
-            'Amazon_Product': 'Product Name',
-            'Composition': 'Composition',
-            'Amazon_url': 'Product Link',
-            'Mean_Odor_Block_if_True': 'Odor Control',
-            'Mean_Tracking_if_True': 'Tracking',
-            'Mean_Dust_if_True': 'Dustiness',
-            'Mean_Cleaning_if_True': "Cleaning Ease",
-            'Mean_Performance': 'Overall average'
+    st.dataframe(
+        display_df,
+        hide_index=True,
+        column_config={
+            "Product Link": st.column_config.LinkColumn(
+                "Product Link",
+                display_text="Go to Amazon (affiliate link)"
+            ),
+            "Product Name": st.column_config.TextColumn(
+                width="large"
+            )
         }
-        
-        columns_to_show = list(display_column_map.keys())
-        existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
-        display_df = filtered_df[existing_display_columns]
-        display_df = display_df.rename(columns=display_column_map)
-
-        st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, Average Score*</p>", unsafe_allow_html=True)
-
-        st.dataframe(
-            display_df,
-            hide_index=True,
-            column_config={
-                "Product Link": st.column_config.LinkColumn("Product Link", display_text="Go to Amazon (affiliate link)"),
-                "Product Name": st.column_config.TextColumn(width="large")
-            }
-        )
-    else:
-        # If no filters are active, show a prompt
-        st.info("✨ Please select one or more filters from the sidebar to see recommendations.")
+    )
 
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
