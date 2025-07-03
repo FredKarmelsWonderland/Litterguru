@@ -213,7 +213,7 @@ if not df.empty:
         column_config={
             "Product Link": st.column_config.LinkColumn(
                 "Product Link",
-                display_text="Go to Amazon (affiliate link)"
+                display_text="Link" # Changed display text
             ),
             "Product Name": st.column_config.TextColumn(
                 width="large"
