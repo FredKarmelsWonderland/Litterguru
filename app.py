@@ -155,7 +155,7 @@ if not df.empty:
         if clumping_selections: filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
 
         if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
-        if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Health Monitoring']
+        if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
 
         # Apply material and location filters
         if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
