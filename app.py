@@ -171,7 +171,7 @@ if not df.empty:
         'P_Odor_Blocking_T2_if_True': 'Odor Control',
         'P_Tracking_T2_if_True': 'Tracking',
         'P_Dust_T2_if_True': 'Dustiness',
-        'P_Cleaning_T2_if_True': "Cleaning Ease"
+        'P_Cleaning_T2_if_True': "Cleaning"
     }
     
     # --- Prepare Data for Display ---
@@ -216,7 +216,7 @@ if not df.empty:
             "Odor Control": st.column_config.NumberColumn(format="%d%%"),
             "Tracking": st.column_config.NumberColumn(format="%d%%"),
             "Dustiness": st.column_config.NumberColumn(format="%d%%"),
-            "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
+            "Cleaning": st.column_config.NumberColumn(format="%d%%")
         }
     )
 
@@ -226,4 +226,5 @@ if not df.empty:
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
+
 
