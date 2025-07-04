@@ -151,15 +151,17 @@ if not df.empty:
     # Display Cat Images from GitHub
     john_cute_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/John%20cute.png"
     both_sitting_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/main/images/Both%20cats%20sitting.png"
-    tien_sleep_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/176ddfecd9034aec695e148c2840e207ef00b5b8/images/Tien%20sleeping.png"
+    Lia_url = "https://raw.githubusercontent.com/FredKarmelsWonderland/Litterguru/main/images//Lia.png"
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.image(john_cute_url, width=100)
     with col2:
         st.image(both_sitting_url, width=100)
     with col3:
         st.image(tien_sleep_url, width=150)
+    with col4:
+        st.image(Lia_url, width=100)
     
     st.markdown(f"**Found {len(filtered_df)} matching products.**")
     
@@ -226,5 +228,3 @@ if not df.empty:
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
-
-
