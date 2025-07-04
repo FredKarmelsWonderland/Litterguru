@@ -193,11 +193,10 @@ if not df.empty:
         'Amazon_Product': 'Product Name',
         'Composition': 'Composition',
         'Amazon_url': 'Product Link',
-        'Mean_Odor_Block_if_True': 'Odor Control',
-        'Mean_Tracking_if_True': 'Tracking',
-        'Mean_Dust_if_True': 'Dustiness',
-        'Mean_Cleaning_if_True': "Cleaning Ease",
-        'Mean_Performance': 'Overall average'
+        'P_Odor_Blocking_T2_if_True': 'Odor Control',
+        'P_Tracking_T2_if_True': 'Tracking',
+        'P_Dust_T2_if_True': 'Dustiness',
+        'P_Cleaning_T2_if_True': "Cleaning Ease"
     }
     
     columns_to_show = list(display_column_map.keys())
@@ -213,11 +212,16 @@ if not df.empty:
         column_config={
             "Product Link": st.column_config.LinkColumn(
                 "Product Link",
-                display_text="Link" # Changed display text
+                display_text="Link"
             ),
             "Product Name": st.column_config.TextColumn(
                 width="large"
-            )
+            ),
+            # Add number formatting for the new performance columns
+            "Odor Control": st.column_config.NumberColumn(format="%.1f"),
+            "Tracking": st.column_config.NumberColumn(format="%.1f"),
+            "Dustiness": st.column_config.NumberColumn(format="%.1f"),
+            "Cleaning Ease": st.column_config.NumberColumn(format="%.1f")
         }
     )
 
