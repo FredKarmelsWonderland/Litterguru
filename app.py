@@ -228,3 +228,4 @@ if not df.empty:
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
+
