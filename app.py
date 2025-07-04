@@ -145,21 +145,21 @@ if not df.empty:
                 filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.subheader("Top Performers for:")
-    performance_feature_map = {
-        'Odor_Blocking': 'Odor Blocking',
-        'Low_Dust': 'Low Dust',
-        'Low_Tracking': 'Low Tracking',
-        'Ease_of_Cleaning': 'Easy to Clean'
-    }
-    available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
-    performance_display_options = list(available_features_map.values())
+    # st.sidebar.subheader("Top Performers for:")
+    # performance_feature_map = {
+    #     'Odor_Blocking': 'Odor Blocking',
+    #     'Low_Dust': 'Low Dust',
+    #     'Low_Tracking': 'Low Tracking',
+    #     'Ease_of_Cleaning': 'Easy to Clean'
+    # }
+    # available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
+    # performance_display_options = list(available_features_map.values())
 
-    selected_display_names = st.sidebar.multiselect(
-        'Select attributes rated highly by users:',
-        options=performance_display_options,
-        label_visibility="collapsed"
-    )
+    # selected_display_names = st.sidebar.multiselect(
+    #     'Select attributes rated highly by users:',
+    #     options=performance_display_options,
+    #     label_visibility="collapsed"
+    # )
     
     # Filtering Logic for Performance Features
     reverse_performance_map = {label: name for name, label in available_features_map.items()}
