@@ -96,20 +96,20 @@ if not df.empty:
                 if st.checkbox(option, key=f"loc_{option}"):
                     selected_loc_options.append(option)
 
-    st.sidebar.subheader("Top Performers for:")
-    performance_feature_map = {
-        'Odor_Blocking': 'Odor Blocking',
-        'Low_Dust': 'Low Dust',
-        'Low_Tracking': 'Low Tracking',
-        'Ease_of_Cleaning': 'Easy to Clean'
-    }
-    available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
-    performance_display_options = list(available_features_map.values())
-    selected_display_names = st.sidebar.multiselect(
-        'Select attributes rated highly by users:',
-        options=performance_display_options,
-        label_visibility="collapsed"
-    )
+    # st.sidebar.subheader("Top Performers for:")
+    # performance_feature_map = {
+    #     'Odor_Blocking': 'Odor Blocking',
+    #     'Low_Dust': 'Low Dust',
+    #     'Low_Tracking': 'Low Tracking',
+    #     'Ease_of_Cleaning': 'Easy to Clean'
+    # }
+    # available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
+    # performance_display_options = list(available_features_map.values())
+    # selected_display_names = st.sidebar.multiselect(
+    #     'Select attributes rated highly by users:',
+    #     options=performance_display_options,
+    #     label_visibility="collapsed"
+    # )
 
     # --- Check if any filter has been applied ---
     any_filter_applied = (
@@ -215,7 +215,6 @@ if not df.empty:
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
     st.markdown("*Percent positivity determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
-    st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
