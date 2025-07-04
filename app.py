@@ -174,12 +174,32 @@ if not df.empty:
         'P_Cleaning_T2_if_True': "Cleaning Ease"
     }
     
+    # --- Prepare Data for Display ---
+    # Identify performance columns to be converted to percentage
+    performance_rating_cols = [
+        'P_Odor_Blocking_T2_if_True',
+        'P_Tracking_T2_if_True',
+        'P_Dust_T2_if_True',
+        'P_Cleaning_T2_if_True'
+    ]
+
+    # Create a copy for display to avoid changing the original filtered_df
+    display_df = filtered_df.copy()
+
+    # Multiply the relevant columns by 100 for percentage display
+    for col in performance_rating_cols:
+        if col in display_df.columns:
+            display_df[col] = display_df[col] * 100
+
+    # Get the list of original column names we want to display
     columns_to_show = list(display_column_map.keys())
-    existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
-    display_df = filtered_df[existing_display_columns]
+    existing_display_columns = [col for col in columns_to_show if col in display_df.columns]
+    display_df = display_df[existing_display_columns]
+    
+    # Rename the columns for the final display
     display_df = display_df.rename(columns=display_column_map)
 
-    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, Average Score*</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, % Positive*</p>", unsafe_allow_html=True)
 
     st.dataframe(
         display_df,
@@ -192,18 +212,18 @@ if not df.empty:
             "Product Name": st.column_config.TextColumn(
                 width="large"
             ),
-            # Add number formatting for the new performance columns
-            "Odor Control": st.column_config.NumberColumn(format="%.1f"),
-            "Tracking": st.column_config.NumberColumn(format="%.1f"),
-            "Dustiness": st.column_config.NumberColumn(format="%.1f"),
-            "Cleaning Ease": st.column_config.NumberColumn(format="%.1f")
+            # Update number formatting to show as percentage
+            "Odor Control": st.column_config.NumberColumn(format="%d%%"),
+            "Tracking": st.column_config.NumberColumn(format="%d%%"),
+            "Dustiness": st.column_config.NumberColumn(format="%d%%"),
+            "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
         }
     )
 
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
-    st.markdown("*Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
-    st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
+    st.markdown("*Percent positivity determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
+
