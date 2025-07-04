@@ -104,26 +104,11 @@ if not df.empty:
                 if st.checkbox(option, key=f"loc_{option}"):
                     selected_loc_options.append(option)
 
-    st.sidebar.subheader("Top Performers for:")
-    performance_feature_map = {
-        'Odor_Blocking': 'Odor Blocking',
-        'Low_Dust': 'Low Dust',
-        'Low_Tracking': 'Low Tracking',
-        'Ease_of_Cleaning': 'Easy to Clean'
-    }
-    available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
-    performance_display_options = list(available_features_map.values())
-    selected_display_names = st.sidebar.multiselect(
-        'Select attributes rated highly by users:',
-        options=performance_display_options,
-        label_visibility="collapsed"
-    )
-
     # --- Check if any filter has been applied ---
     any_filter_applied = (
         is_flushable or is_not_flushable or is_scented or is_unscented or
         is_clumping or is_non_clumping or is_eco_friendly or is_health_monitoring or
-        selected_mat_options or selected_loc_options or selected_display_names
+        selected_mat_options or selected_loc_options
     )
 
     # --- Main Page Display ---
@@ -164,12 +149,6 @@ if not df.empty:
         # Apply material and location filters
         if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
         if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
-
-        # Apply performance filters
-        reverse_performance_map = {label: name for name, label in available_features_map.items()}
-        for selected_name in selected_display_names:
-            raw_column_name = reverse_performance_map.get(selected_name)
-            if raw_column_name: filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
         
         st.markdown(f"**Found {len(filtered_df)} matching products.**")
         
@@ -205,8 +184,6 @@ if not df.empty:
 
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
-    st.markdown("*Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
-    st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
