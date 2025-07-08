@@ -27,7 +27,7 @@ def load_data():
         # Using the final table name from your provided code
         query = """
             SELECT *
-            FROM `cat-litter-recommender.test_01.final_01`
+            FROM `cat-litter-recommender.test_01.final_02`
         """
         query_job = client.query(query)
         df = query_job.to_dataframe()
@@ -52,7 +52,6 @@ def load_data():
         # Ensure numeric columns are numeric
         if 'Size (lbs)' in df.columns:
             df['Size (lbs)'] = pd.to_numeric(df['Size (lbs)'], errors='coerce')
-
 
         return df
 
@@ -87,19 +86,6 @@ if not df.empty:
         is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
         is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
-    # --- Size Slider ---
-    if 'Size (lbs)' in df.columns:
-        min_size = float(df['Size (lbs)'].min())
-        max_size = float(df['Size (lbs)'].max())
-        selected_size_range = st.sidebar.slider(
-            'Filter by Size (lbs):',
-            min_value=min_size,
-            max_value=max_size,
-            value=(min_size, max_size)
-        )
-    else:
-        selected_size_range = (0, 0) # Placeholder if column doesn't exist
-
     # --- Other Expanders ---
     selected_mat_options = []
     if 'Material Type' in df.columns:
@@ -116,22 +102,51 @@ if not df.empty:
             for option in loc_options:
                 if st.checkbox(option, key=f"loc_{option}"):
                     selected_loc_options.append(option)
-
+    
     selected_qty_options = []
     if 'Quantity' in df.columns:
         with st.sidebar.expander("Filter by Quantity", expanded=False):
-            qty_options = sorted(df['Quantity'].unique())
+            # Convert to numeric for sorting, then back to string for display
+            qty_options = sorted(pd.to_numeric(df['Quantity'], errors='coerce').dropna().unique())
             for option in qty_options:
-                if st.checkbox(option, key=f"qty_{option}"):
-                    selected_qty_options.append(option)
+                if st.checkbox(str(option), key=f"qty_{option}"):
+                    selected_qty_options.append(str(option))
 
-    # --- Check if any filter has been applied ---
-    any_filter_applied = (
-        is_flushable or is_not_flushable or is_scented or is_unscented or
-        is_clumping or is_non_clumping or is_eco_friendly or is_health_monitoring or
-        selected_mat_options or selected_loc_options or selected_qty_options or
-        (selected_size_range[0] > min_size or selected_size_range[1] < max_size if 'Size (lbs)' in df.columns else False)
-    )
+    # --- Size Slider ---
+    if 'Size (lbs)' in df.columns:
+        min_size = float(df['Size (lbs)'].min())
+        max_size = float(df['Size (lbs)'].max())
+        selected_size_range = st.sidebar.slider(
+            'Filter by Size (lbs):',
+            min_value=min_size,
+            max_value=max_size,
+            value=(min_size, max_size)
+        )
+    else:
+        selected_size_range = (0, 0) # Placeholder
+
+    # --- Filtering Logic ---
+    # Apply attribute filters
+    flushable_selections = [val for check, val in [(is_flushable, 'Flushable'), (is_not_flushable, 'Not Flushable')] if check]
+    if flushable_selections: filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
+    
+    scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
+    if scent_selections: filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
+
+    clumping_selections = [val for check, val in [(is_clumping, 'Clumping'), (is_non_clumping, 'Non-Clumping')] if check]
+    if clumping_selections: filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
+
+    if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
+    if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
+
+    # Apply material, location, quantity, and size filters
+    if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
+    if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
+    if selected_qty_options: filtered_df = filtered_df[filtered_df['Quantity'].isin(selected_qty_options)]
+    if 'Size (lbs)' in filtered_df.columns:
+        if selected_size_range[0] > min_size or selected_size_range[1] < max_size:
+            filtered_df = filtered_df[filtered_df['Size (lbs)'].between(selected_size_range[0], selected_size_range[1])]
+
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommender 🐾")
@@ -153,67 +168,54 @@ if not df.empty:
     with col4:
         st.image(Lia_url, width=100)
     
-    # --- Conditional Display Logic ---
-    if any_filter_applied:
-        # If at least one filter is active, apply the logic and show the table
-        
-        # Apply attribute filters
-        flushable_selections = [val for check, val in [(is_flushable, 'Flushable'), (is_not_flushable, 'Not Flushable')] if check]
-        if flushable_selections: filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
-        
-        scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
-        if scent_selections: filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
+    st.markdown(f"**Found {len(filtered_df)} matching products.**")
+    
+    # --- Define the columns to display and their new, shorter names ---
+    display_column_map = {
+        'Amazon_Product': 'Product Name',
+        'Composition': 'Composition',
+        'Size (lbs)': 'Size (lbs)',
+        'Quantity': 'Quantity',
+        'Affiliate_url': 'Product Link',
+        'P_Odor_Blocking_T2_if_True': 'Odor Control',
+        'P_Tracking_T2_if_True': 'Tracking',
+        'P_Dust_T2_if_True': 'Dustiness',
+        'P_Cleaning_T2_if_True': "Cleaning Ease",
+    }
+    
+    # --- Prepare Data for Display ---
+    performance_rating_cols = [
+        'P_Odor_Blocking_T2_if_True', 'P_Tracking_T2_if_True',
+        'P_Dust_T2_if_True', 'P_Cleaning_T2_if_True'
+    ]
+    display_df_intermediate = filtered_df.copy()
+    for col in performance_rating_cols:
+        if col in display_df_intermediate.columns:
+            display_df_intermediate[col] = pd.to_numeric(display_df_intermediate[col], errors='coerce').fillna(0) * 100
 
-        clumping_selections = [val for check, val in [(is_clumping, 'Clumping'), (is_non_clumping, 'Non-Clumping')] if check]
-        if clumping_selections: filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
+    columns_to_show = list(display_column_map.keys())
+    existing_display_columns = [col for col in columns_to_show if col in display_df_intermediate.columns]
+    display_df = display_df_intermediate[existing_display_columns]
+    display_df = display_df.rename(columns=display_column_map)
 
-        if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
-        if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
+    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, % Positive Reviews*</p>", unsafe_allow_html=True)
 
-        # Apply material, location, quantity, and size filters
-        if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
-        if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
-        if selected_qty_options: filtered_df = filtered_df[filtered_df['Quantity'].isin(selected_qty_options)]
-        if 'Size (lbs)' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['Size (lbs)'].between(selected_size_range[0], selected_size_range[1])]
-
-        st.markdown(f"**Found {len(filtered_df)} matching products.**")
-        
-        display_column_map = {
-            'Amazon_Product': 'Product Name',
-            'Composition': 'Composition',
-            'Size (lbs)': 'Size (lbs)',
-            'Quantity': 'Quantity',
-            'Affiliate_url': 'Product Link',
-            'Mean_Odor_Block_if_True': 'Odor Control',
-            'Mean_Tracking_if_True': 'Tracking',
-            'Mean_Dust_if_True': 'Dustiness',
-            'Mean_Cleaning_if_True': "Cleaning Ease",
-            'Mean_Performance': 'Overall average'
+    st.dataframe(
+        display_df,
+        hide_index=True,
+        column_config={
+            "Product Link": st.column_config.LinkColumn("Product Link", display_text="Link"),
+            "Product Name": st.column_config.TextColumn(width="large"),
+            "Odor Control": st.column_config.NumberColumn(format="%d%%"),
+            "Tracking": st.column_config.NumberColumn(format="%d%%"),
+            "Dustiness": st.column_config.NumberColumn(format="%d%%"),
+            "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
         }
-        
-        columns_to_show = list(display_column_map.keys())
-        existing_display_columns = [col for col in columns_to_show if col in filtered_df.columns]
-        display_df = filtered_df[existing_display_columns]
-        display_df = display_df.rename(columns=display_column_map)
-
-        st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, Average Score*</p>", unsafe_allow_html=True)
-
-        st.dataframe(
-            display_df,
-            hide_index=True,
-            column_config={
-                "Product Link": st.column_config.LinkColumn("Product Link", display_text="Link"),
-                "Product Name": st.column_config.TextColumn(width="large")
-            }
-        )
-    else:
-        # If no filters are active, show a prompt
-        st.info("✨ Please select one or more filters from the sidebar to see recommendations.")
+    )
 
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
-    st.markdown("*Average rating scores determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
+    st.markdown("*Percent positivity determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
     st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
