@@ -150,10 +150,10 @@ if not df.empty:
         scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
         if scent_selections: filtered_df = filtered_df[filtered_df['Scent'].isin(scent_selections)]
 
-        clumping_selections = [val for check, val in [(is_clumping, 'Clumping'), (is_non_clumping, 'Non-Clumping')] if check]
+        clumping_selections = [val for check, val in [(is_clumping, 'Yes'), (is_non_clumping, 'No')] if check]
         if clumping_selections: filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
 
-        if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
+        # if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
         if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
 
         # Apply material and location filters
@@ -171,7 +171,7 @@ if not df.empty:
         display_column_map = {
             'Amazon_Product': 'Product Name',
             'Composition': 'Composition',
-            'Affiliate_url': 'Product Link',
+            'Affiliate_url': 'Buy on Amazon',
             'P_Odor_Blocking_T2_if_True': 'Odor Control',
             'P_Tracking_T2_if_True': 'Tracking',
             'P_Dust_T2_if_True': 'Dustiness',
@@ -218,4 +218,5 @@ if not df.empty:
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
+
 
