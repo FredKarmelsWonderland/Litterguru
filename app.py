@@ -27,7 +27,7 @@ def load_data():
         # Using the final table name from your provided code
         query = """
             SELECT *
-            FROM `cat-litter-recommender.test_01.final_01`
+            FROM `cat-litter-recommender.test_01.final_02`
         """
         query_job = client.query(query)
         df = query_job.to_dataframe()
