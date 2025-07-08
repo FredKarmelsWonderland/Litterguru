@@ -44,14 +44,16 @@ def load_data():
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Quantity']
+        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Qty']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
 
         # Ensure numeric columns are numeric
-        if 'Size (lbs)' in df.columns:
-            df['Size (lbs)'] = pd.to_numeric(df['Size (lbs)'], errors='coerce')
+        numeric_cols = ['Size', 'Current_Price']
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
 
         return df
 
@@ -72,6 +74,11 @@ if not df.empty:
 
     st.sidebar.header('Litter Type')
     
+    # --- DEBUGGING: Display actual column names from BigQuery ---
+    st.sidebar.subheader("Available Data Columns:")
+    st.sidebar.expander("Click to see column names").write(df.columns.tolist())
+    # ---
+    
     # Start with a copy of the original dataframe
     filtered_df = df.copy()
 
@@ -86,7 +93,7 @@ if not df.empty:
         is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
         is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
-    # --- Other Expanders ---
+    # --- Other Expanders and Sliders ---
     selected_mat_options = []
     if 'Material Type' in df.columns:
         with st.sidebar.expander("Filter by Material Type", expanded=False):
@@ -104,18 +111,18 @@ if not df.empty:
                     selected_loc_options.append(option)
     
     selected_qty_options = []
-    if 'Quantity' in df.columns:
+    if 'Qty' in df.columns:
         with st.sidebar.expander("Filter by Quantity", expanded=False):
             # Convert to numeric for sorting, then back to string for display
-            qty_options = sorted(pd.to_numeric(df['Quantity'], errors='coerce').dropna().unique())
+            qty_options = sorted(pd.to_numeric(df['Qty'], errors='coerce').dropna().unique())
             for option in qty_options:
-                if st.checkbox(str(option), key=f"qty_{option}"):
-                    selected_qty_options.append(str(option))
+                if st.checkbox(str(int(option)), key=f"qty_{option}"): # Use int() to remove .0
+                    selected_qty_options.append(str(int(option)))
 
-    # --- Size Slider ---
-    if 'Size (lbs)' in df.columns:
-        min_size = float(df['Size (lbs)'].min())
-        max_size = float(df['Size (lbs)'].max())
+    # --- Sliders for Numeric Columns ---
+    if 'Size' in df.columns:
+        min_size = float(df['Size'].dropna().min())
+        max_size = float(df['Size'].dropna().max())
         selected_size_range = st.sidebar.slider(
             'Filter by Size (lbs):',
             min_value=min_size,
@@ -123,7 +130,19 @@ if not df.empty:
             value=(min_size, max_size)
         )
     else:
-        selected_size_range = (0, 0) # Placeholder
+        selected_size_range = (0, 0)
+
+    if 'Current_Price' in df.columns:
+        min_price = float(df['Current_Price'].dropna().min())
+        max_price = float(df['Current_Price'].dropna().max())
+        selected_price_range = st.sidebar.slider(
+            'Filter by Price ($):',
+            min_value=min_price,
+            max_value=max_price,
+            value=(min_price, max_price)
+        )
+    else:
+        selected_price_range = (0, 0)
 
     # --- Filtering Logic ---
     # Apply attribute filters
@@ -139,14 +158,18 @@ if not df.empty:
     if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
     if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
 
-    # Apply material, location, quantity, and size filters
+    # Apply other filters
     if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
     if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
-    if selected_qty_options: filtered_df = filtered_df[filtered_df['Quantity'].isin(selected_qty_options)]
-    if 'Size (lbs)' in filtered_df.columns:
+    if selected_qty_options: filtered_df = filtered_df[filtered_df['Qty'].isin(selected_qty_options)]
+    
+    if 'Size' in filtered_df.columns:
         if selected_size_range[0] > min_size or selected_size_range[1] < max_size:
-            filtered_df = filtered_df[filtered_df['Size (lbs)'].between(selected_size_range[0], selected_size_range[1])]
-
+            filtered_df = filtered_df[filtered_df['Size'].between(selected_size_range[0], selected_size_range[1])]
+            
+    if 'Current_Price' in filtered_df.columns:
+        if selected_price_range[0] > min_price or selected_price_range[1] < max_price:
+            filtered_df = filtered_df[filtered_df['Current_Price'].between(selected_price_range[0], selected_price_range[1])]
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommender 🐾")
@@ -174,8 +197,9 @@ if not df.empty:
     display_column_map = {
         'Amazon_Product': 'Product Name',
         'Composition': 'Composition',
-        'Size (lbs)': 'Size (lbs)',
-        'Quantity': 'Quantity',
+        'Size': 'Size (lbs)',
+        'Qty': 'Quantity',
+        'Current_Price': 'Price ($)',
         'Affiliate_url': 'Product Link',
         'P_Odor_Blocking_T2_if_True': 'Odor Control',
         'P_Tracking_T2_if_True': 'Tracking',
@@ -195,23 +219,28 @@ if not df.empty:
 
     columns_to_show = list(display_column_map.keys())
     existing_display_columns = [col for col in columns_to_show if col in display_df_intermediate.columns]
-    display_df = display_df_intermediate[existing_display_columns]
-    display_df = display_df.rename(columns=display_column_map)
+    
+    if not existing_display_columns:
+        st.warning("No data to display based on the selected columns.")
+    else:
+        display_df = display_df_intermediate[existing_display_columns]
+        display_df = display_df.rename(columns=display_column_map)
 
-    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, % Positive Reviews*</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, % Positive Reviews*</p>", unsafe_allow_html=True)
 
-    st.dataframe(
-        display_df,
-        hide_index=True,
-        column_config={
-            "Product Link": st.column_config.LinkColumn("Product Link", display_text="Link"),
-            "Product Name": st.column_config.TextColumn(width="large"),
-            "Odor Control": st.column_config.NumberColumn(format="%d%%"),
-            "Tracking": st.column_config.NumberColumn(format="%d%%"),
-            "Dustiness": st.column_config.NumberColumn(format="%d%%"),
-            "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
-        }
-    )
+        st.dataframe(
+            display_df,
+            hide_index=True,
+            column_config={
+                "Product Link": st.column_config.LinkColumn("Product Link", display_text="Link"),
+                "Product Name": st.column_config.TextColumn(width="large"),
+                "Price ($)": st.column_config.NumberColumn(format="$%.2f"),
+                "Odor Control": st.column_config.NumberColumn(format="%d%%"),
+                "Tracking": st.column_config.NumberColumn(format="%d%%"),
+                "Dustiness": st.column_config.NumberColumn(format="%d%%"),
+                "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
+            }
+        )
 
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
