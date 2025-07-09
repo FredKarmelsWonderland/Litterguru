@@ -109,13 +109,13 @@ if not df.empty:
                 st.write("No 'Product Origin' data available.")
 
     # --- Multi-select for performance features (with user-friendly names) ---
-    st.sidebar.subheader("Top Performers for:")
-    performance_feature_map = {
-        'Odor_Blocking': 'Odor Blocking',
-        'Low_Dust': 'Low Dust',
-        'Low_Tracking': 'Low Tracking',
-        'Ease_of_Cleaning': 'Easy to Clean'
-    }
+    # st.sidebar.subheader("Top Performers for:")
+    # performance_feature_map = {
+    #     'Odor_Blocking': 'Odor Blocking',
+    #     'Low_Dust': 'Low Dust',
+    #     'Low_Tracking': 'Low Tracking',
+    #     'Ease_of_Cleaning': 'Easy to Clean'
+    # }
     available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
     performance_display_options = list(available_features_map.values())
 
