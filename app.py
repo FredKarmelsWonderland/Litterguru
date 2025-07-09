@@ -143,12 +143,12 @@ if not df.empty:
     if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
     if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
     
-    # Apply performance filters
-    reverse_performance_map = {label: name for name, label in available_features_map.items()}
-    for selected_name in selected_display_names:
-        raw_column_name = reverse_performance_map.get(selected_name)
-        if raw_column_name:
-            filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
+    # # Apply performance filters
+    # reverse_performance_map = {label: name for name, label in available_features_map.items()}
+    # for selected_name in selected_display_names:
+    #     raw_column_name = reverse_performance_map.get(selected_name)
+    #     if raw_column_name:
+    #         filtered_df = filtered_df[filtered_df[raw_column_name] == 1]
 
 
     # --- Main Page Display ---
