@@ -44,7 +44,7 @@ def load_data():
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Composition', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Qty']
+        categorical_cols = ['Scent', 'Composition', 'Mfg_Location', 'Eco_friendly', 'Clumping', 'Qty']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -55,9 +55,12 @@ def load_data():
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
         
-        # Health_Monitoring is a BOOLEAN, so we just fill NAs
-        if 'Health_Monitoring' in df.columns:
-            df['Health_Monitoring'] = df['Health_Monitoring'].fillna(False).astype(bool)
+        # Handle true BOOLEAN columns from BigQuery
+        boolean_cols = ['Health_Monitoring', 'Flushable']
+        for col in boolean_cols:
+            if col in df.columns:
+                df[col] = df[col].fillna(False).astype(bool)
+
 
         return df
 
@@ -161,7 +164,7 @@ if not df.empty:
 
     # --- Filtering Logic ---
     # Apply attribute filters
-    flushable_selections = [val for check, val in [(is_flushable, 'Yes'), (is_not_flushable, 'No')] if check]
+    flushable_selections = [val for check, val in [(is_flushable, True), (is_not_flushable, False)] if check]
     if flushable_selections: filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
     
     scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
