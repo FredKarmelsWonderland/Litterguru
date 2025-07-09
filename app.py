@@ -44,17 +44,10 @@ def load_data():
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Composition', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Qty']
+        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Clumping']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
-        
-        # Ensure numeric columns are numeric
-        numeric_cols = ['Size', 'Current_Price']
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-
 
         return df
 
@@ -89,7 +82,6 @@ if not df.empty:
             is_unscented = st.checkbox("Unscented", key="scent_no")
             is_clumping = st.checkbox("Clumping", key = "clumping_yes")
             is_non_clumping = st.checkbox("Non-Clumping", key = "clumping_no")
-            is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
             is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
         # --- Nested expander for Composition ---
@@ -114,52 +106,9 @@ if not df.empty:
             else:
                 st.write("No 'Product Origin' data available.")
 
-        # --- Nested expander for Quantity ---
-        with st.expander("Piece Count in Product", expanded=False):
-            selected_qty_options = []
-            if 'Qty' in df.columns:
-                qty_options = sorted(pd.to_numeric(df['Qty'], errors='coerce').dropna().unique())
-                for option in qty_options:
-                    if st.checkbox(str(int(option)), key=f"qty_{option}"):
-                        selected_qty_options.append(str(int(option)))
-            else:
-                st.write("No 'Quantity' data available.")
-
-        # --- Sliders for Numeric Columns (Now Separate) ---
-        with st.expander("Size (lbs)", expanded=False):
-            if 'Size' in df.columns:
-                min_size = float(df['Size'].dropna().min())
-                max_size = float(df['Size'].dropna().max())
-                selected_size_range = st.slider(
-                    'Filter by Size (lbs):',
-                    min_value=min_size,
-                    max_value=max_size,
-                    value=(min_size, max_size),
-                    label_visibility="collapsed"
-                )
-            else:
-                selected_size_range = (0, 0)
-                st.write("No 'Size' data available.")
-
-        with st.expander("Price ($)", expanded=False):
-            if 'Current_Price' in df.columns:
-                min_price = float(df['Current_Price'].dropna().min())
-                max_price = float(df['Current_Price'].dropna().max())
-                selected_price_range = st.slider(
-                    'Filter by Price ($):',
-                    min_value=min_price,
-                    max_value=max_price,
-                    value=(min_price, max_price),
-                    label_visibility="collapsed"
-                )
-            else:
-                selected_price_range = (0, 0)
-                st.write("No 'Price' data available.")
-
-
     # --- Filtering Logic ---
     # Apply attribute filters
-    flushable_selections = [val for check, val in [(is_flushable, 'Yes'), (is_not_flushable, 'No')] if check]
+    flushable_selections = [val for check, val in [(is_flushable, 'Flushable'), (is_not_flushable, 'Not Flushable')] if check]
     if flushable_selections: filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
     
     scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
@@ -168,20 +117,14 @@ if not df.empty:
     clumping_selections = [val for check, val in [(is_clumping, 'Clumping'), (is_non_clumping, 'Non-Clumping')] if check]
     if clumping_selections: filtered_df = filtered_df[filtered_df['Clumping'].isin(clumping_selections)]
 
-    if is_eco_friendly: filtered_df = filtered_df[filtered_df['Eco_friendly'] == 'Eco-friendly']
-    if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
+    if is_health_monitoring: 
+        if 'Health_Monitoring' in filtered_df.columns:
+            # Correctly filter for the boolean True, not the string "Yes"
+            filtered_df = filtered_df[filtered_df['Health_Monitoring'] == True]
 
     # Apply other filters
     if selected_mat_options: filtered_df = filtered_df[filtered_df['Composition'].isin(selected_mat_options)]
     if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
-    if selected_qty_options: filtered_df = filtered_df[filtered_df['Qty'].isin(selected_qty_options)]
-    
-    if 'Size' in filtered_df.columns and (selected_size_range[0] > min_size or selected_size_range[1] < max_size):
-        filtered_df = filtered_df[filtered_df['Size'].between(selected_size_range[0], selected_size_range[1])]
-            
-    if 'Current_Price' in filtered_df.columns and (selected_price_range[0] > min_price or selected_price_range[1] < max_price):
-        filtered_df = filtered_df[filtered_df['Current_Price'].between(selected_price_range[0], selected_price_range[1])]
-
 
     # --- Main Page Display ---
     st.title("Cat Litter Recommender 🐾")
@@ -209,14 +152,12 @@ if not df.empty:
     display_column_map = {
         'Amazon_Product': 'Product Name',
         'Composition': 'Composition',
-        'Size': 'Size (lbs)',
-        'Qty': 'Quantity',
-        'Current_Price': 'Price ($)',
         'Affiliate_url': 'Buy on Amazon',
         'P_Odor_Blocking_T2_if_True': 'Odor Control',
         'P_Tracking_T2_if_True': 'Tracking',
         'P_Dust_T2_if_True': 'Dustiness',
         'P_Cleaning_T2_if_True': "Cleaning Ease",
+        'Mean_Performance': 'Overall average'
     }
     
     # --- Prepare Data for Display ---
@@ -231,28 +172,23 @@ if not df.empty:
 
     columns_to_show = list(display_column_map.keys())
     existing_display_columns = [col for col in columns_to_show if col in display_df_intermediate.columns]
-    
-    if not existing_display_columns:
-        st.warning("No data to display based on the selected columns.")
-    else:
-        display_df = display_df_intermediate[existing_display_columns]
-        display_df = display_df.rename(columns=display_column_map)
+    display_df = display_df_intermediate[existing_display_columns]
+    display_df = display_df.rename(columns=display_column_map)
 
-        st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, % Positive Reviews*</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: right; color: grey; padding-right: 8%;'>AI Sentiment Analysis, % Positive Reviews*</p>", unsafe_allow_html=True)
 
-        st.dataframe(
-            display_df,
-            hide_index=True,
-            column_config={
-                "Buy on Amazon": st.column_config.LinkColumn("Buy on Amazon", display_text="Link"),
-                "Product Name": st.column_config.TextColumn(width="large"),
-                "Price ($)": st.column_config.NumberColumn(format="$%.2f"),
-                "Odor Control": st.column_config.NumberColumn(format="%d%%"),
-                "Tracking": st.column_config.NumberColumn(format="%d%%"),
-                "Dustiness": st.column_config.NumberColumn(format="%d%%"),
-                "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
-            }
-        )
+    st.dataframe(
+        display_df,
+        hide_index=True,
+        column_config={
+            "Buy on Amazon": st.column_config.LinkColumn("Buy on Amazon", display_text="Link"),
+            "Product Name": st.column_config.TextColumn(width="large"),
+            "Odor Control": st.column_config.NumberColumn(format="%d%%"),
+            "Tracking": st.column_config.NumberColumn(format="%d%%"),
+            "Dustiness": st.column_config.NumberColumn(format="%d%%"),
+            "Cleaning Ease": st.column_config.NumberColumn(format="%d%%")
+        }
+    )
 
     # --- Add Feedback Email at the Bottom ---
     st.markdown("---")
