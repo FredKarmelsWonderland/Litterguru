@@ -116,14 +116,14 @@ if not df.empty:
     #     'Low_Tracking': 'Low Tracking',
     #     'Ease_of_Cleaning': 'Easy to Clean'
     # }
-    available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
-    performance_display_options = list(available_features_map.values())
+    # available_features_map = { name: label for name, label in performance_feature_map.items() if name in df.columns }
+    # performance_display_options = list(available_features_map.values())
 
-    selected_display_names = st.sidebar.multiselect(
-        'Select attributes rated highly by users:',
-        options=performance_display_options,
-        label_visibility="collapsed"
-    )
+    # selected_display_names = st.sidebar.multiselect(
+    #     'Select attributes rated highly by users:',
+    #     options=performance_display_options,
+    #     label_visibility="collapsed"
+    # )
     
     # --- Filtering Logic ---
     # Apply attribute filters
