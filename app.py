@@ -44,7 +44,7 @@ def load_data():
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Clumping', 'Qty']
+        categorical_cols = ['Scent', 'Flushable', 'Composition', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Qty']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -94,8 +94,8 @@ if not df.empty:
             is_non_clumping = st.checkbox("Non-Clumping", key = "clumping_no")
             is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
-        # --- Nested expander for Composition (previously Material Type) ---
-        with st.expander("Composition", expanded=False):
+        # --- Nested expander for Composition ---
+        with st.expander("Litter Material", expanded=False):
             selected_mat_options = []
             if 'Composition' in df.columns:
                 mat_options = sorted(df['Composition'].unique())
@@ -211,9 +211,9 @@ if not df.empty:
     # --- Define the columns to display and their new, shorter names ---
     display_column_map = {
         'Amazon_Product': 'Product Name',
-        'Composition': 'Composition',
+        'Composition': 'Litter Material',
         'Size': 'Size (lbs)',
-        'Qty': 'Quantity',
+        'Qty': 'Unit Count',
         'Current_Price': 'Price ($)',
         'Affiliate_url': 'Buy on Amazon',
         'P_Odor_Blocking_T2_if_True': 'Odor Control',
