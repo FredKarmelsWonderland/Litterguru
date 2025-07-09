@@ -44,7 +44,7 @@ def load_data():
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Ensure categorical columns are strings and handle potential NA values
-        categorical_cols = ['Scent', 'Flushable', 'Material Type', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Qty']
+        categorical_cols = ['Scent', 'Flushable', 'Composition', 'Mfg_Location', 'Health_Monitoring', 'Eco_friendly', 'Clumping', 'Qty']
         for col in categorical_cols:
             if col in df.columns:
                 df[col] = df[col].astype(str).fillna('N/A')
@@ -92,16 +92,16 @@ if not df.empty:
             is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
             is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
 
-        # --- Nested expander for Material Type ---
-        with st.expander("Material Type", expanded=False):
+        # --- Nested expander for Composition ---
+        with st.expander("Composition", expanded=False):
             selected_mat_options = []
-            if 'Material Type' in df.columns:
-                mat_options = sorted(df['Material Type'].unique())
+            if 'Composition' in df.columns:
+                mat_options = sorted(df['Composition'].unique())
                 for option in mat_options:
                     if st.checkbox(option, key=f"mat_{option}"):
                         selected_mat_options.append(option)
             else:
-                st.write("No 'Material Type' data available.")
+                st.write("No 'Composition' data available.")
         
         # --- Nested expander for Product Origin ---
         with st.expander("Product Origin", expanded=False):
@@ -125,8 +125,8 @@ if not df.empty:
             else:
                 st.write("No 'Quantity' data available.")
 
-        # --- Sliders for Numeric Columns ---
-        with st.expander("Size & Price", expanded=False):
+        # --- Sliders for Numeric Columns (Now Separate) ---
+        with st.expander("Size (lbs)", expanded=False):
             if 'Size' in df.columns:
                 min_size = float(df['Size'].dropna().min())
                 max_size = float(df['Size'].dropna().max())
@@ -134,11 +134,14 @@ if not df.empty:
                     'Filter by Size (lbs):',
                     min_value=min_size,
                     max_value=max_size,
-                    value=(min_size, max_size)
+                    value=(min_size, max_size),
+                    label_visibility="collapsed"
                 )
             else:
                 selected_size_range = (0, 0)
+                st.write("No 'Size' data available.")
 
+        with st.expander("Price ($)", expanded=False):
             if 'Current_Price' in df.columns:
                 min_price = float(df['Current_Price'].dropna().min())
                 max_price = float(df['Current_Price'].dropna().max())
@@ -146,15 +149,17 @@ if not df.empty:
                     'Filter by Price ($):',
                     min_value=min_price,
                     max_value=max_price,
-                    value=(min_price, max_price)
+                    value=(min_price, max_price),
+                    label_visibility="collapsed"
                 )
             else:
                 selected_price_range = (0, 0)
+                st.write("No 'Price' data available.")
 
 
     # --- Filtering Logic ---
     # Apply attribute filters
-    flushable_selections = [val for check, val in [(is_flushable, 'Flushable'), (is_not_flushable, 'Not Flushable')] if check]
+    flushable_selections = [val for check, val in [(is_flushable, 'Yes'), (is_not_flushable, 'No')] if check]
     if flushable_selections: filtered_df = filtered_df[filtered_df['Flushable'].isin(flushable_selections)]
     
     scent_selections = [val for check, val in [(is_scented, 'Scented'), (is_unscented, 'Unscented')] if check]
@@ -167,17 +172,15 @@ if not df.empty:
     if is_health_monitoring: filtered_df = filtered_df[filtered_df['Health_Monitoring'] == 'Yes']
 
     # Apply other filters
-    if selected_mat_options: filtered_df = filtered_df[filtered_df['Material Type'].isin(selected_mat_options)]
+    if selected_mat_options: filtered_df = filtered_df[filtered_df['Composition'].isin(selected_mat_options)]
     if selected_loc_options: filtered_df = filtered_df[filtered_df['Mfg_Location'].isin(selected_loc_options)]
     if selected_qty_options: filtered_df = filtered_df[filtered_df['Qty'].isin(selected_qty_options)]
     
-    if 'Size' in filtered_df.columns:
-        if selected_size_range[0] > min_size or selected_size_range[1] < max_size:
-            filtered_df = filtered_df[filtered_df['Size'].between(selected_size_range[0], selected_size_range[1])]
+    if 'Size' in filtered_df.columns and (selected_size_range[0] > min_size or selected_size_range[1] < max_size):
+        filtered_df = filtered_df[filtered_df['Size'].between(selected_size_range[0], selected_size_range[1])]
             
-    if 'Current_Price' in filtered_df.columns:
-        if selected_price_range[0] > min_price or selected_price_range[1] < max_price:
-            filtered_df = filtered_df[filtered_df['Current_Price'].between(selected_price_range[0], selected_price_range[1])]
+    if 'Current_Price' in filtered_df.columns and (selected_price_range[0] > min_price or selected_price_range[1] < max_price):
+        filtered_df = filtered_df[filtered_df['Current_Price'].between(selected_price_range[0], selected_price_range[1])]
 
 
     # --- Main Page Display ---
@@ -258,5 +261,4 @@ if not df.empty:
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
-
 
