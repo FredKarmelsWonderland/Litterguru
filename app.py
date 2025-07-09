@@ -79,69 +79,65 @@ if not df.empty:
 
     # --- Create a single toggleable expander for all filters ---
     with st.sidebar.expander("Apply Filters", expanded=False):
-        st.subheader("Attributes")
-        is_flushable = st.checkbox("Flushable", key="flush_yes")
-        is_not_flushable = st.checkbox("Not Flushable", key="flush_no")
-        is_scented = st.checkbox("Scented", key="scent_yes")
-        is_unscented = st.checkbox("Unscented", key="scent_no")
-        is_clumping = st.checkbox("Clumping", key = "clumping_yes")
-        is_non_clumping = st.checkbox("Non-Clumping", key = "clumping_no")
-        is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
-        is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
-
-        # --- Other Filters inside the main expander ---
-        st.subheader("Material Type")
-        selected_mat_options = []
-        if 'Material Type' in df.columns:
-            mat_options = sorted(df['Material Type'].unique())
-            for option in mat_options:
-                if st.checkbox(option, key=f"mat_{option}"):
-                    selected_mat_options.append(option)
         
-        st.subheader("Product Origin")
-        selected_loc_options = []
-        if 'Mfg_Location' in df.columns:
-            loc_options = df['Mfg_Location'].value_counts().index.tolist()
-            for option in loc_options:
-                if st.checkbox(option, key=f"loc_{option}"):
-                    selected_loc_options.append(option)
+        with st.expander("Attributes", expanded=True):
+            is_flushable = st.checkbox("Flushable", key="flush_yes")
+            is_not_flushable = st.checkbox("Not Flushable", key="flush_no")
+            is_scented = st.checkbox("Scented", key="scent_yes")
+            is_unscented = st.checkbox("Unscented", key="scent_no")
+            is_clumping = st.checkbox("Clumping", key = "clumping_yes")
+            is_non_clumping = st.checkbox("Non-Clumping", key = "clumping_no")
+            is_eco_friendly = st.checkbox("Eco-friendly", key="eco_yes")
+            is_health_monitoring = st.checkbox("Health Monitoring", key="health_yes")
+
+        with st.expander("Material Type"):
+            selected_mat_options = []
+            if 'Material Type' in df.columns:
+                mat_options = sorted(df['Material Type'].unique())
+                for option in mat_options:
+                    if st.checkbox(option, key=f"mat_{option}"):
+                        selected_mat_options.append(option)
         
-        st.subheader("Piece Count in Product")
-        selected_qty_options = []
-        if 'Qty' in df.columns:
-            qty_options = sorted(pd.to_numeric(df['Qty'], errors='coerce').dropna().unique())
-            for option in qty_options:
-                if st.checkbox(str(int(option)), key=f"qty_{option}"):
-                    selected_qty_options.append(str(int(option)))
+        with st.expander("Product Origin"):
+            selected_loc_options = []
+            if 'Mfg_Location' in df.columns:
+                loc_options = df['Mfg_Location'].value_counts().index.tolist()
+                for option in loc_options:
+                    if st.checkbox(option, key=f"loc_{option}"):
+                        selected_loc_options.append(option)
+        
+        with st.expander("Piece Count in Product"):
+            selected_qty_options = []
+            if 'Qty' in df.columns:
+                qty_options = sorted(pd.to_numeric(df['Qty'], errors='coerce').dropna().unique())
+                for option in qty_options:
+                    if st.checkbox(str(int(option)), key=f"qty_{option}"):
+                        selected_qty_options.append(str(int(option)))
 
-        # --- Sliders for Numeric Columns ---
-        st.subheader("Size (lbs)")
-        if 'Size' in df.columns:
-            min_size = float(df['Size'].dropna().min())
-            max_size = float(df['Size'].dropna().max())
-            selected_size_range = st.slider(
-                'Filter by Size (lbs):',
-                min_value=min_size,
-                max_value=max_size,
-                value=(min_size, max_size),
-                label_visibility="collapsed"
-            )
-        else:
-            selected_size_range = (0, 0)
+        with st.expander("Size & Price"):
+            if 'Size' in df.columns:
+                min_size = float(df['Size'].dropna().min())
+                max_size = float(df['Size'].dropna().max())
+                selected_size_range = st.slider(
+                    'Filter by Size (lbs):',
+                    min_value=min_size,
+                    max_value=max_size,
+                    value=(min_size, max_size)
+                )
+            else:
+                selected_size_range = (0, 0)
 
-        st.subheader("Price ($)")
-        if 'Current_Price' in df.columns:
-            min_price = float(df['Current_Price'].dropna().min())
-            max_price = float(df['Current_Price'].dropna().max())
-            selected_price_range = st.slider(
-                'Filter by Price ($):',
-                min_value=min_price,
-                max_value=max_price,
-                value=(min_price, max_price),
-                label_visibility="collapsed"
-            )
-        else:
-            selected_price_range = (0, 0)
+            if 'Current_Price' in df.columns:
+                min_price = float(df['Current_Price'].dropna().min())
+                max_price = float(df['Current_Price'].dropna().max())
+                selected_price_range = st.slider(
+                    'Filter by Price ($):',
+                    min_value=min_price,
+                    max_value=max_price,
+                    value=(min_price, max_price)
+                )
+            else:
+                selected_price_range = (0, 0)
 
     # --- Filtering Logic ---
     # Apply attribute filters
@@ -248,5 +244,6 @@ if not df.empty:
     st.markdown("https://github.com/FredKarmelsWonderland")
 else:
     st.warning("Could not load data. Please check the error messages above.")
+
 
 
