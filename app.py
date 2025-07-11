@@ -269,6 +269,9 @@ if not df.empty:
     st.markdown("https://www.amazon.com/dp/B00IYI0LR2?th=1&tag=fredkarmel89-20")
     st.markdown("https://www.amazon.com/dp/B08R3W6SQ4?th=1&tag=fredkarmel89-20")
     st.markdown("https://www.amazon.com/dp/B00IYI0LJ0/ref=twister_B09F54C4NX?_encoding=UTF8&th=1&tag=fredkarmel89-20")
+    st.markdown("https://amzn.to/4kwbYgY")
+    st.markdown("https://amzn.to/40KW9fi")
+    
 else:
     st.warning("Could not load data. Please check the error messages above.")
 
