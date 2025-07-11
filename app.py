@@ -266,9 +266,9 @@ if not df.empty:
     # st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     # st.markdown("https://github.com/FredKarmelsWonderland")
     st.markdown("Jason buy these")
-    st.markdown("https://www.amazon.com/dp/B00IYI0LR2?th=1&tag=fredkarmel89-20")
+    # st.markdown("https://www.amazon.com/dp/B00IYI0LR2?th=1&tag=fredkarmel89-20")
     st.markdown("https://www.amazon.com/dp/B08R3W6SQ4?th=1&tag=fredkarmel89-20")
-    st.markdown("https://www.amazon.com/dp/B00IYI0LJ0/ref=twister_B09F54C4NX?_encoding=UTF8&th=1&tag=fredkarmel89-20")
+    # st.markdown("https://www.amazon.com/dp/B00IYI0LJ0/ref=twister_B09F54C4NX?_encoding=UTF8&th=1&tag=fredkarmel89-20")
     st.markdown("https://amzn.to/4kwbYgY")
     st.markdown("https://amzn.to/40KW9fi")
     
