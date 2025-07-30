@@ -146,20 +146,20 @@ if not df.empty:
                 selected_size_range = (0, 0)
                 st.write("No 'Size' data available.")
 
-        with st.expander("Price ($)", expanded=False):
-            if 'Current_Price' in df.columns:
-                min_price = float(df['Current_Price'].dropna().min())
-                max_price = float(df['Current_Price'].dropna().max())
-                selected_price_range = st.slider(
-                    'Filter by Price ($):',
-                    min_value=min_price,
-                    max_value=max_price,
-                    value=(min_price, max_price),
-                    label_visibility="collapsed"
-                )
-            else:
-                selected_price_range = (0, 0)
-                st.write("No 'Price' data available.")
+        # with st.expander("Price ($)", expanded=False):
+        #     if 'Current_Price' in df.columns:
+        #         min_price = float(df['Current_Price'].dropna().min())
+        #         max_price = float(df['Current_Price'].dropna().max())
+        #         selected_price_range = st.slider(
+        #             'Filter by Price ($):',
+        #             min_value=min_price,
+        #             max_value=max_price,
+        #             value=(min_price, max_price),
+        #             label_visibility="collapsed"
+        #         )
+        #     else:
+        #         selected_price_range = (0, 0)
+        #         st.write("No 'Price' data available.")
 
 
     # --- Filtering Logic ---
@@ -185,8 +185,8 @@ if not df.empty:
     if 'Size' in filtered_df.columns and (selected_size_range[0] > min_size or selected_size_range[1] < max_size):
         filtered_df = filtered_df[filtered_df['Size'].between(selected_size_range[0], selected_size_range[1])]
             
-    if 'Current_Price' in filtered_df.columns and (selected_price_range[0] > min_price or selected_price_range[1] < max_price):
-        filtered_df = filtered_df[filtered_df['Current_Price'].between(selected_price_range[0], selected_price_range[1])]
+    # if 'Current_Price' in filtered_df.columns and (selected_price_range[0] > min_price or selected_price_range[1] < max_price):
+    #     filtered_df = filtered_df[filtered_df['Current_Price'].between(selected_price_range[0], selected_price_range[1])]
 
 
     # --- Main Page Display ---
@@ -217,7 +217,7 @@ if not df.empty:
         'Composition': 'Litter Material',
         'Size': 'Size (lbs)',
         'Qty': 'Unit Count',
-        'Current_Price': 'Price ($)',
+        # 'Current_Price': 'Price ($)',
         'Affiliate_url': 'Buy on Amazon',
         'P_Odor_Blocking_T2_if_True': 'Odor Control',
         'P_Tracking_T2_if_True': 'Tracking',
@@ -252,7 +252,7 @@ if not df.empty:
             column_config={
                 "Buy on Amazon": st.column_config.LinkColumn("Buy on Amazon", display_text="Link"),
                 "Product Name": st.column_config.TextColumn(width="large"),
-                "Price ($)": st.column_config.NumberColumn(format="$%.2f"),
+                " ($)": st.column_config.NumberColumn(format="$%.2f"),
                 "Odor Control": st.column_config.NumberColumn(format="%d%%"),
                 "Tracking": st.column_config.NumberColumn(format="%d%%"),
                 "Dustiness": st.column_config.NumberColumn(format="%d%%"),
