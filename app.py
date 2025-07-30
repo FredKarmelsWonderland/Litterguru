@@ -264,7 +264,7 @@ if not df.empty:
     # st.markdown("---")
     st.markdown("*As an Amazon Associate, I earn from qualifying purchases.*")
     st.markdown("*Percent positivity determined by AI sentiment analysis (Gemini 2.5 Pro) on thousands of online reviews*")
-    st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
+    # st.markdown("*Top performers = At least 75% of ratings for this attribute are determined to be 4 or 5 on a 5-point scale*")
     
 else:
     st.warning("Could not load data. Please check the error messages above.")
